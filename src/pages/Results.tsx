@@ -9,20 +9,20 @@ const Results = () => {
 
   // Mock data for charts
   const currentPortfolio = [
-    { name: '삼성전자', value: 35, color: '#0088FE' },
-    { name: 'SK하이닉스', value: 25, color: '#00C49F' },
-    { name: 'NAVER', value: 20, color: '#FFBB28' },
-    { name: '카카오', value: 10, color: '#FF8042' },
+    { name: 'Apple (AAPL)', value: 35, color: '#0088FE' },
+    { name: 'Microsoft (MSFT)', value: 25, color: '#00C49F' },
+    { name: 'Google (GOOGL)', value: 20, color: '#FFBB28' },
+    { name: 'Amazon (AMZN)', value: 10, color: '#FF8042' },
     { name: '기타', value: 10, color: '#8884D8' },
   ];
 
   const recommendedPortfolio = [
-    { name: '삼성전자', value: 30, color: '#0088FE' },
-    { name: 'SK하이닉스', value: 20, color: '#00C49F' },
-    { name: 'TSMC', value: 15, color: '#FFBB28' },
-    { name: 'NVIDIA', value: 15, color: '#FF8042' },
-    { name: 'Apple', value: 12, color: '#8884D8' },
-    { name: '기타', value: 8, color: '#82CA9D' },
+    { name: 'Apple (AAPL)', value: 25, color: '#0088FE' },
+    { name: 'Microsoft (MSFT)', value: 20, color: '#00C49F' },
+    { name: 'NVIDIA (NVDA)', value: 18, color: '#FFBB28' },
+    { name: 'Google (GOOGL)', value: 15, color: '#FF8042' },
+    { name: 'Tesla (TSLA)', value: 12, color: '#8884D8' },
+    { name: '기타', value: 10, color: '#82CA9D' },
   ];
 
   const performanceData = [
@@ -37,11 +37,11 @@ const Results = () => {
   ];
 
   const trades = [
-    { action: '매수', stock: 'TSMC', quantity: 50, price: '₩125,000', impact: '+15%' },
-    { action: '매수', stock: 'NVIDIA', quantity: 30, price: '₩800,000', impact: '+15%' },
-    { action: '매수', stock: 'Apple', quantity: 40, price: '₩180,000', impact: '+12%' },
-    { action: '매도', stock: 'NAVER', quantity: 25, price: '₩200,000', impact: '-20%' },
-    { action: '매도', stock: '카카오', quantity: 15, price: '₩50,000', impact: '-10%' },
+    { action: '매수', stock: 'NVIDIA (NVDA)', quantity: 15, price: '$850.00', impact: '+18%' },
+    { action: '매수', stock: 'Tesla (TSLA)', quantity: 20, price: '$240.00', impact: '+12%' },
+    { action: '매도', stock: 'Apple (AAPL)', quantity: 25, price: '$190.00', impact: '-10%' },
+    { action: '매도', stock: 'Amazon (AMZN)', quantity: 30, price: '$145.00', impact: '-10%' },
+    { action: '리밸런싱', stock: 'Microsoft (MSFT)', quantity: 10, price: '$420.00', impact: '-5%' },
   ];
 
   const metrics = [
@@ -60,7 +60,7 @@ const Results = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">AI 포트폴리오 분석 결과</h1>
+            <h1 className="text-2xl font-bold">AI 미국 주식 포트폴리오 분석 결과</h1>
           </div>
         </div>
       </header>
@@ -127,10 +127,10 @@ const Results = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                분석 결과, 현재 포트폴리오는 국내 기술주에 과도하게 집중되어 있습니다. 
-                AI는 글로벌 기술 대장주(TSMC, NVIDIA, Apple) 편입을 통해 지역적 리스크를 분산하고, 
-                성장성이 높은 반도체 및 AI 관련 종목 비중을 확대할 것을 제안합니다. 
-                이를 통해 연간 수익률 6.2%p 개선과 동시에 변동성 2.7%p 감소 효과를 기대할 수 있습니다.
+                분석 결과, 현재 포트폴리오는 전통적인 빅테크 기업에 과도하게 집중되어 있습니다. 
+                AI는 급성장하는 AI/반도체 섹터(NVIDIA, Tesla) 비중 확대와 함께 기존 보유 종목의 
+                적정 리밸런싱을 제안합니다. 이를 통해 연간 수익률 6.2%p 개선과 동시에 
+                AI 혁명의 수혜를 받을 수 있는 포트폴리오로 전환할 수 있습니다.
               </p>
             </CardContent>
           </Card>
@@ -215,7 +215,7 @@ const Results = () => {
                     dataKey="benchmark" 
                     stroke="#8884D8" 
                     strokeWidth={2}
-                    name="코스피 200"
+                    name="S&P 500"
                   />
                 </LineChart>
               </ResponsiveContainer>

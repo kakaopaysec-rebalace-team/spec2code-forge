@@ -12,7 +12,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">AI 자산 리밸런싱 시스템</h1>
+            <h1 className="text-2xl font-bold">AI 미국 주식 리밸런싱 시스템</h1>
           </div>
         </div>
       </header>
@@ -21,11 +21,11 @@ const Index = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            나만의 투자 철학을<br />AI와 함께 완성하세요
+            미국 주식 포트폴리오를<br />AI와 함께 최적화하세요
           </h2>
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            복잡한 투자 분석을 단순화하여, AI가 제안하는 최적의 리밸런싱 전략을 
-            한눈에 이해하고 신뢰할 수 있는 시뮬레이션 결과를 확인하세요.
+            글로벌 최고 기업들로 구성된 미국 주식 포트폴리오를 AI가 분석하여
+            최적의 리밸런싱 전략과 신뢰할 수 있는 시뮬레이션 결과를 제공합니다.
           </p>
           
           <Button 

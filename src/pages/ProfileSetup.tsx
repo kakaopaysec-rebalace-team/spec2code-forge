@@ -60,7 +60,7 @@ const ProfileSetup = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">투자 프로필 설정</h1>
+            <h1 className="text-2xl font-bold">미국 주식 투자 프로필 설정</h1>
           </div>
         </div>
       </header>
@@ -132,7 +132,7 @@ const ProfileSetup = () => {
                     <div className="space-y-2">
                       <Label>종목명</Label>
                       <Input
-                        placeholder="예: 삼성전자"
+                        placeholder="예: Apple (AAPL)"
                         value={item.stock}
                         onChange={(e) => updatePortfolio(index, 'stock', e.target.value)}
                       />
