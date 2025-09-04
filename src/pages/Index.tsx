@@ -28,13 +28,23 @@ const Index = () => {
             최적의 리밸런싱 전략과 신뢰할 수 있는 시뮬레이션 결과를 제공합니다.
           </p>
           
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6 mb-16"
-            onClick={() => navigate('/profile')}
-          >
-            나의 전략 분석하기
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-6"
+              onClick={() => navigate('/profile')}
+            >
+              나의 전략 분석하기
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              className="text-lg px-8 py-6"
+              onClick={() => navigate('/strategies')}
+            >
+              전략 비교 보기
+            </Button>
+          </div>
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-8 mt-16">
