@@ -219,42 +219,6 @@ const Strategies = () => {
             </CardContent>
           </Card>
 
-          {/* Strategy Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>전략 선택 가이드</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold mb-3">투자 성향별 추천</h3>
-                  <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">공격적 투자자:</span> AI 혁신 전략, 기술주 집중 전략</div>
-                    <div><span className="font-medium">균형 투자자:</span> 성장형 전략, 가치형 전략</div>
-                    <div><span className="font-medium">보수적 투자자:</span> 안정형 전략, 배당 중심 전략</div>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3">투자 기간별 추천</h3>
-                  <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">장기 (5년+):</span> 성장형, AI 혁신, 기술주 집중</div>
-                    <div><span className="font-medium">중기 (2-5년):</span> 가치형, 배당 중심</div>
-                    <div><span className="font-medium">단기 (1-2년):</span> 안정형, 배당 중심</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <Button variant="outline" onClick={() => navigate('/profile')}>
-              프로필 설정하기
-            </Button>
-            <Button size="lg" onClick={() => navigate('/results')}>
-              맞춤 분석 받기
-            </Button>
-          </div>
         </div>
       </main>
     </div>
