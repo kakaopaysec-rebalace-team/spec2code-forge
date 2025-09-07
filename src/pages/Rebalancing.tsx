@@ -140,6 +140,18 @@ const Rebalancing = () => {
     setSelectedStrategy(strategyId);
   };
 
+  const handleSelectAllHoldings = () => {
+    if (selectedHoldings.length === holdings.length) {
+      // 전체 해제
+      setSelectedHoldings([]);
+    } else {
+      // 전체 선택
+      setSelectedHoldings(holdings.map(holding => holding.id));
+    }
+  };
+
+  const isAllSelected = selectedHoldings.length === holdings.length;
+
   const handleStartRebalancing = () => {
     if (selectedHoldings.length === 0) {
       toast({
@@ -213,13 +225,24 @@ const Rebalancing = () => {
           {/* Holdings Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                보유 종목 선택
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                리밸런싱할 종목들을 선택하세요
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    보유 종목 선택
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    리밸런싱할 종목들을 선택하세요
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAllHoldings}
+                >
+                  {isAllSelected ? '전체 해제' : '전체 선택'}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
