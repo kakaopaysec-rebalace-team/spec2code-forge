@@ -157,11 +157,15 @@ const ProfileSetup = () => {
                         className="hidden"
                         id="file-upload"
                       />
-                      <Label htmlFor="file-upload" className="cursor-pointer">
-                        <Button variant="outline" size="lg" type="button" className="px-8 py-3">
-                          파일 선택하기
-                        </Button>
-                      </Label>
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        type="button" 
+                        className="px-8 py-3"
+                        onClick={() => document.getElementById('file-upload')?.click()}
+                      >
+                        파일 선택하기
+                      </Button>
                       {uploadedFile && (
                         <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                           <p className="text-sm font-medium text-primary">
