@@ -32,6 +32,14 @@ const Index = () => {
             <Button 
               size="lg" 
               className="text-lg px-8 py-6"
+              onClick={() => navigate('/rebalancing')}
+            >
+              리밸런싱 시작
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              className="text-lg px-8 py-6"
               onClick={() => navigate('/profile')}
             >
               리밸런싱 전략 생성하기

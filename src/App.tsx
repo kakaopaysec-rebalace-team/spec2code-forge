@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import ProfileSetup from "./pages/ProfileSetup";
 import Results from "./pages/Results";
 import Strategies from "./pages/Strategies";
+import Rebalancing from "./pages/Rebalancing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/profile" element={<ProfileSetup />} />
           <Route path="/results" element={<Results />} />
           <Route path="/strategies" element={<Strategies />} />
+          <Route path="/rebalancing" element={<Rebalancing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
