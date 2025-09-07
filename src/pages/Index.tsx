@@ -45,7 +45,7 @@ const Index = () => {
             <Button 
               variant="outline"
               size="lg" 
-              className="text-lg px-8 py-6"
+              className="text-lg px-8 py-6 sm:flex-1 sm:max-w-xs"
               onClick={() => navigate('/profile')}
             >
               리밸런싱 전략 생성하기
@@ -53,7 +53,7 @@ const Index = () => {
             <Button 
               variant="outline"
               size="lg" 
-              className="text-lg px-8 py-6"
+              className="text-lg px-8 py-6 sm:flex-1 sm:max-w-xs"
               onClick={() => navigate('/strategies')}
             >
               리밸런싱 전략 비교
