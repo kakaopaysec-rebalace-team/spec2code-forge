@@ -32,10 +32,10 @@ const Index = () => {
           <div className="mb-8">
             <Button 
               size="lg" 
-              className="text-xl px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 min-w-[280px]"
               onClick={() => navigate('/rebalancing')}
             >
-              <TrendingUp className="mr-3 h-6 w-6" />
+              <TrendingUp className="mr-3 h-5 w-5" />
               리밸런싱 시작
             </Button>
           </div>
@@ -45,7 +45,7 @@ const Index = () => {
             <Button 
               variant="outline"
               size="lg" 
-              className="text-lg px-8 py-6 sm:flex-1 sm:max-w-xs"
+              className="text-lg px-8 py-6 min-w-[280px]"
               onClick={() => navigate('/profile')}
             >
               리밸런싱 전략 생성하기
@@ -53,7 +53,7 @@ const Index = () => {
             <Button 
               variant="outline"
               size="lg" 
-              className="text-lg px-8 py-6 sm:flex-1 sm:max-w-xs"
+              className="text-lg px-8 py-6 min-w-[280px]"
               onClick={() => navigate('/strategies')}
             >
               리밸런싱 전략 비교
