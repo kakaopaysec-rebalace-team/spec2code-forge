@@ -13,9 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [investmentStyle, setInvestmentStyle] = useState("");
-  const [investmentGoal, setInvestmentGoal] = useState("");
-  const [investmentPeriod, setInvestmentPeriod] = useState("");
   const [learningMethod, setLearningMethod] = useState("");
   const [philosophyText, setPhilosophyText] = useState("");
   const [philosophyUrl, setPhilosophyUrl] = useState("");
@@ -33,15 +30,6 @@ const ProfileSetup = () => {
   };
 
   const handleAnalyze = () => {
-    if (!investmentStyle || !investmentGoal || !investmentPeriod) {
-      toast({
-        title: "입력 오류",
-        description: "투자 프로필을 모두 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!learningMethod) {
       toast({
         title: "학습 방법 선택",
@@ -106,59 +94,6 @@ const ProfileSetup = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-8">
-          {/* Investment Profile */}
-          <Card>
-            <CardHeader>
-              <CardTitle>투자 프로필</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label>투자 성향</Label>
-                  <Select value={investmentStyle} onValueChange={setInvestmentStyle}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="conservative">보수적</SelectItem>
-                      <SelectItem value="moderate">중도</SelectItem>
-                      <SelectItem value="aggressive">공격적</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>투자 목표</Label>
-                  <Select value={investmentGoal} onValueChange={setInvestmentGoal}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="retirement">은퇴 준비</SelectItem>
-                      <SelectItem value="wealth">자산 증식</SelectItem>
-                      <SelectItem value="income">배당 수익</SelectItem>
-                      <SelectItem value="growth">성장 투자</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>투자 기간</Label>
-                  <Select value={investmentPeriod} onValueChange={setInvestmentPeriod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="short">1년 이하</SelectItem>
-                      <SelectItem value="medium">1-5년</SelectItem>
-                      <SelectItem value="long">5년 이상</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Learning Method Selection */}
           <Card>
             <CardHeader>
