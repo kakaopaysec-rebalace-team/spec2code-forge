@@ -28,14 +28,20 @@ const Index = () => {
             최적의 리밸런싱 전략과 신뢰할 수 있는 시뮬레이션 결과를 제공합니다.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          {/* Primary Action */}
+          <div className="mb-8">
             <Button 
               size="lg" 
-              className="text-lg px-8 py-6"
+              className="text-xl px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               onClick={() => navigate('/rebalancing')}
             >
+              <TrendingUp className="mr-3 h-6 w-6" />
               리밸런싱 시작
             </Button>
+          </div>
+
+          {/* Secondary Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button 
               variant="outline"
               size="lg" 
