@@ -12,7 +12,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">AI 미국 주식 리밸런싱 시스템</h1>
+            <h1 className="text-2xl font-bold">AI 해외 주식 리밸런싱 시스템</h1>
           </div>
         </div>
       </header>
@@ -21,10 +21,10 @@ const Index = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            미국 주식 포트폴리오를<br />AI와 함께 최적화하세요
+            해외 주식 포트폴리오를<br />AI와 함께 최적화하세요
           </h2>
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            글로벌 최고 기업들로 구성된 미국 주식 포트폴리오를 AI가 분석하여
+            글로벌 최고 기업들로 구성된 해외 주식 포트폴리오를 AI가 분석하여
             최적의 리밸런싱 전략과 신뢰할 수 있는 시뮬레이션 결과를 제공합니다.
           </p>
           
@@ -34,7 +34,7 @@ const Index = () => {
               className="text-lg px-8 py-6"
               onClick={() => navigate('/profile')}
             >
-              나의 전략 분석하기
+              리밸런싱 전략 생성하기
             </Button>
             <Button 
               variant="outline"
@@ -42,7 +42,7 @@ const Index = () => {
               className="text-lg px-8 py-6"
               onClick={() => navigate('/strategies')}
             >
-              전략 비교 보기
+              리밸런싱 전략 비교
             </Button>
           </div>
 
