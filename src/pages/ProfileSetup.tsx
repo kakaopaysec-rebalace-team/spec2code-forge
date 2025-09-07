@@ -102,11 +102,11 @@ const ProfileSetup = () => {
                 투자 철학 학습 방법 선택
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               <RadioGroup value={learningMethod} onValueChange={setLearningMethod}>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-6">
                   {/* Document Upload Option */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="document" id="document" />
                       <Label htmlFor="document" className="flex items-center gap-2 font-medium">
@@ -114,37 +114,10 @@ const ProfileSetup = () => {
                         문서 업로드
                       </Label>
                     </div>
-                    {learningMethod === "document" && (
-                      <div className="space-y-2">
-                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                          <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground mb-2">
-                            PDF, TXT, DOCX 파일 업로드
-                          </p>
-                          <Input
-                            type="file"
-                            accept=".pdf,.txt,.docx"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            id="file-upload"
-                          />
-                          <Label htmlFor="file-upload" className="cursor-pointer">
-                            <Button variant="outline" size="sm" type="button">
-                              파일 선택
-                            </Button>
-                          </Label>
-                          {uploadedFile && (
-                            <p className="text-xs text-primary mt-2">
-                              {uploadedFile.name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* URL Option */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="url" id="url" />
                       <Label htmlFor="url" className="flex items-center gap-2 font-medium">
@@ -152,23 +125,10 @@ const ProfileSetup = () => {
                         웹사이트 URL
                       </Label>
                     </div>
-                    {learningMethod === "url" && (
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="투자 관련 웹사이트 URL"
-                            value={philosophyUrl}
-                            onChange={(e) => setPhilosophyUrl(e.target.value)}
-                            className="pl-10"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Direct Input Option */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="text" id="text" />
                       <Label htmlFor="text" className="flex items-center gap-2 font-medium">
@@ -176,18 +136,91 @@ const ProfileSetup = () => {
                         직접 입력
                       </Label>
                     </div>
-                    {learningMethod === "text" && (
-                      <div className="space-y-2">
-                        <Textarea
-                          placeholder="투자 철학, 원칙, 경험담을 입력하세요..."
-                          value={philosophyText}
-                          onChange={(e) => setPhilosophyText(e.target.value)}
-                          className="min-h-24"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
+
+                {/* Large input areas based on selection */}
+                {learningMethod === "document" && (
+                  <div className="mt-8">
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors">
+                      <Upload className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-lg text-muted-foreground mb-4">
+                        PDF, TXT, DOCX 파일을 업로드하세요
+                      </p>
+                      <p className="text-sm text-muted-foreground/80 mb-6">
+                        투자 관련 문서, 포트폴리오 정보, 투자 철학이 담긴 파일을 분석합니다
+                      </p>
+                      <Input
+                        type="file"
+                        accept=".pdf,.txt,.docx"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      <Label htmlFor="file-upload" className="cursor-pointer">
+                        <Button variant="outline" size="lg" type="button" className="px-8 py-3">
+                          파일 선택하기
+                        </Button>
+                      </Label>
+                      {uploadedFile && (
+                        <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                          <p className="text-sm font-medium text-primary">
+                            업로드된 파일: {uploadedFile.name}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {learningMethod === "url" && (
+                  <div className="mt-8">
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-lg font-medium mb-2">웹사이트 URL을 입력하세요</p>
+                        <p className="text-sm text-muted-foreground">
+                          투자 관련 블로그, 뉴스, 분석 자료가 담긴 웹사이트를 분석합니다
+                        </p>
+                      </div>
+                      <div className="relative max-w-2xl mx-auto">
+                        <Link className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          placeholder="https://example.com/investment-analysis"
+                          value={philosophyUrl}
+                          onChange={(e) => setPhilosophyUrl(e.target.value)}
+                          className="pl-12 py-4 text-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {learningMethod === "text" && (
+                  <div className="mt-8">
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <PenTool className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-lg font-medium mb-2">투자 철학을 직접 입력하세요</p>
+                        <p className="text-sm text-muted-foreground">
+                          개인의 투자 원칙, 경험담, 선호하는 투자 전략을 자세히 작성해주세요
+                        </p>
+                      </div>
+                      <Textarea
+                        placeholder="예시: 
+• 장기 투자를 선호하며 배당주에 관심이 많습니다
+• 기술주보다는 안정적인 가치주를 선호합니다
+• 월 100만원씩 정기 적립 투자를 하고 있습니다
+• 리스크 관리를 위해 분산투자를 중요하게 생각합니다
+
+투자 철학, 원칙, 경험담을 자유롭게 작성해주세요..."
+                        value={philosophyText}
+                        onChange={(e) => setPhilosophyText(e.target.value)}
+                        className="min-h-48 text-base leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                )}
               </RadioGroup>
 
               <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
