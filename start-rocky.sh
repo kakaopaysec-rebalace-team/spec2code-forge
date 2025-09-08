@@ -2,6 +2,19 @@
 
 echo "🚀 Rocky Linux AI 리밸런싱 시스템 시작 중..."
 
+# 환경 설정 자동화
+echo "🔧 Rocky Linux 환경 설정 확인 중..."
+SERVER_IP=$(hostname -I | awk '{print $1}')
+if [ ! -f ".env" ] || ! grep -q "$SERVER_IP" .env 2>/dev/null; then
+    echo "📝 서버 IP($SERVER_IP)로 환경 설정 업데이트 중..."
+    cat > .env << EOF
+# Frontend API Configuration for Rocky Linux  
+VITE_API_URL=http://$SERVER_IP:8003
+VITE_ENV=production
+EOF
+    echo "✅ .env 파일 업데이트 완료"
+fi
+
 # 현재 디렉토리 확인
 if [ ! -f "package.json" ]; then
     echo "❌ 오류: package.json 파일을 찾을 수 없습니다."
