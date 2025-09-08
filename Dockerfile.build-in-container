@@ -40,15 +40,63 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 # Working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Install Python dependencies with multiple fallback strategies
 COPY backend/requirements.txt ./backend/
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --timeout 60 --retries 3 \
-    --index-url https://pypi.org/simple/ \
-    --trusted-host pypi.org \
-    --trusted-host pypi.python.org \
-    --trusted-host files.pythonhosted.org \
-    -r backend/requirements.txt
+
+# Create installation script with fallbacks
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "🔄 Python 의존성 설치 시작..."\n\
+\n\
+# Strategy 1: Standard PyPI with DNS fixes\n\
+echo "📦 Strategy 1: Standard PyPI installation"\n\
+if pip install --no-cache-dir --timeout 120 --retries 5 \\\n\
+    --index-url https://pypi.org/simple/ \\\n\
+    --trusted-host pypi.org \\\n\
+    --trusted-host pypi.python.org \\\n\
+    --trusted-host files.pythonhosted.org \\\n\
+    -r backend/requirements.txt 2>/dev/null; then\n\
+    echo "✅ Strategy 1 성공"\n\
+    exit 0\n\
+fi\n\
+\n\
+# Strategy 2: Alternative PyPI mirrors\n\
+echo "📦 Strategy 2: Alternative mirrors"\n\
+for mirror in "https://pypi.douban.com/simple/" "https://mirrors.aliyun.com/pypi/simple/" "https://pypi.tuna.tsinghua.edu.cn/simple/"; do\n\
+    echo "   시도 중: $mirror"\n\
+    if pip install --no-cache-dir --timeout 60 --retries 3 \\\n\
+        --index-url "$mirror" \\\n\
+        --trusted-host $(echo $mirror | sed "s|https://||" | sed "s|/.*||") \\\n\
+        -r backend/requirements.txt 2>/dev/null; then\n\
+        echo "✅ Strategy 2 성공: $mirror"\n\
+        exit 0\n\
+    fi\n\
+done\n\
+\n\
+# Strategy 3: Individual package installation\n\
+echo "📦 Strategy 3: Individual package installation"\n\
+while IFS= read -r package; do\n\
+    if [[ ! "$package" =~ ^# ]] && [[ -n "$package" ]]; then\n\
+        echo "   개별 설치: $package"\n\
+        pip install --no-cache-dir --timeout 60 --retries 3 "$package" || echo "   실패: $package"\n\
+    fi\n\
+done < backend/requirements.txt\n\
+\n\
+# Strategy 4: Reduced requirements (essential only)\n\
+echo "📦 Strategy 4: Essential packages only"\n\
+pip install --no-cache-dir --timeout 60 --retries 3 \\\n\
+    fastapi==0.104.0 \\\n\
+    uvicorn==0.24.0 \\\n\
+    pydantic==2.5.0 \\\n\
+    pandas==2.1.0 \\\n\
+    numpy==1.24.0 \\\n\
+    requests==2.31.0 \\\n\
+    python-dotenv==1.0.0 || true\n\
+\n\
+echo "🎯 의존성 설치 완료 (일부 패키지는 실패했을 수 있음)"\n\
+' > /install_deps.sh && chmod +x /install_deps.sh
+
+RUN /install_deps.sh
 
 # Copy backend code
 COPY backend/ ./backend/

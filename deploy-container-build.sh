@@ -23,6 +23,34 @@ fi
 echo "   Docker 버전: $(docker --version)"
 echo "   Docker 서비스 상태: $(systemctl is-active docker || echo '수동 실행 중')"
 
+# 네트워크 연결 확인
+echo ""
+echo "🌐 네트워크 연결 확인..."
+if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+    echo "   ✅ 인터넷 연결 정상"
+    NETWORK_AVAILABLE=true
+else
+    echo "   ⚠️ 인터넷 연결 불가 - 오프라인 모드로 진행"
+    NETWORK_AVAILABLE=false
+fi
+
+if ping -c 1 pypi.org >/dev/null 2>&1; then
+    echo "   ✅ PyPI 연결 정상"
+    PYPI_AVAILABLE=true
+else
+    echo "   ⚠️ PyPI 연결 불가 - 대안 방법 사용"
+    PYPI_AVAILABLE=false
+fi
+
+# 오프라인 wheels 확인
+if [ -d "wheels" ] && [ "$(ls -A wheels/)" ]; then
+    echo "   ✅ 오프라인 wheel 파일 발견 ($(ls wheels/ | wc -l)개)"
+    OFFLINE_WHEELS=true
+else
+    echo "   ⚠️ 오프라인 wheel 파일 없음"
+    OFFLINE_WHEELS=false
+fi
+
 # 2. 기존 리소스 정리
 echo ""
 echo "🧹 기존 리소스 정리..."
@@ -53,7 +81,7 @@ echo ""
 echo "🐳 Docker 빌드 (컨테이너 내부 빌드 방식)..."
 echo "   사용할 Dockerfile: Dockerfile.build-in-container"
 
-docker build \
+if docker build \
     --file Dockerfile.build-in-container \
     --tag ${IMAGE_NAME} \
     --no-cache \
@@ -61,9 +89,46 @@ docker build \
     --rm \
     --force-rm \
     --progress=plain \
-    .
-
-echo "   ✅ Docker 빌드 성공: ${IMAGE_NAME}"
+    . ; then
+    echo "   ✅ Docker 빌드 성공: ${IMAGE_NAME}"
+else
+    echo ""
+    echo "❌ Docker 빌드 실패 - 대안책 제시"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "🔧 가능한 해결책:"
+    echo ""
+    echo "1️⃣ 오프라인 wheel 파일 생성:"
+    echo "   ./create-offline-wheels.sh"
+    echo "   (인터넷 연결이 되는 환경에서 실행)"
+    echo ""
+    echo "2️⃣ 로컬 개발 서버 사용:"
+    echo "   ./start.sh"
+    echo "   접속: http://localhost:8080"
+    echo ""
+    echo "3️⃣ 수동 의존성 설치:"
+    echo "   cd backend"
+    echo "   python3 -m venv venv"
+    echo "   source venv/bin/activate"
+    echo "   pip install fastapi uvicorn pydantic pandas numpy requests"
+    echo "   python app.py"
+    echo ""
+    echo "4️⃣ 네트워크 설정 확인:"
+    echo "   - 방화벽 설정 확인"
+    echo "   - Docker daemon DNS 설정"
+    echo "   - Corporate proxy 설정"
+    echo ""
+    
+    if [ "$OFFLINE_WHEELS" = true ]; then
+        echo "5️⃣ 오프라인 wheels로 재시도:"
+        echo "   (오프라인 wheel 파일이 있습니다)"
+    else
+        echo "💡 참고: wheels/ 디렉토리에 오프라인 패키지를 준비하면"
+        echo "   네트워크 문제 시에도 설치 가능합니다."
+    fi
+    
+    exit 1
+fi
 
 # 5. 환경 설정
 echo ""

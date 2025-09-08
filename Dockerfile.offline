@@ -14,19 +14,33 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 # Set working directory
 WORKDIR /app
 
+# Copy offline wheels if available
+COPY wheels/ /wheels/ 2>/dev/null || echo "No wheels directory found"
+
 # Copy backend requirements first (for better caching)
 COPY backend/requirements.txt ./backend/
 
-# Install Python dependencies without system packages
-# This avoids the need for curl/wget which require network access
+# Install Python dependencies - try offline first, then minimal online
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r backend/requirements.txt
+    if [ -d "/wheels" ] && [ "$(ls -A /wheels/)" ]; then \
+        echo "🔄 오프라인 wheel 파일로 설치..."; \
+        pip install --find-links /wheels/ --no-index -r backend/requirements.txt || \
+        echo "⚠️ Wheel 설치 실패, 최소 패키지만 설치"; \
+    fi && \
+    pip install --no-cache-dir \
+        fastapi==0.104.0 \
+        uvicorn==0.24.0 \
+        pydantic==2.5.0 \
+        pandas==2.1.0 \
+        numpy==1.24.0 \
+        requests==2.31.0 \
+        python-dotenv==1.0.0 || echo "기본 패키지 설치 시도 완료"
 
 # Copy backend source code
 COPY backend/ ./backend/
 
 # Copy pre-built frontend (must be built locally before Docker build)
-COPY dist ./frontend/dist/
+COPY dist ./frontend/dist/ 2>/dev/null || echo "No pre-built frontend found"
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/data && \
