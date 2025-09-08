@@ -61,6 +61,8 @@ docker build \
     --rm \
     --force-rm \
     --progress=plain \
+    --build-arg DNS1=8.8.8.8 \
+    --build-arg DNS2=8.8.4.4 \
     .
 
 echo "   ✅ Docker 빌드 성공: ${IMAGE_NAME}"
@@ -96,6 +98,8 @@ docker run -d \
     --log-driver=json-file \
     --log-opt max-size=100m \
     --log-opt max-file=3 \
+    --dns=8.8.8.8 \
+    --dns=8.8.4.4 \
     ${IMAGE_NAME}
 
 echo "   ✅ 컨테이너 실행 완료"
