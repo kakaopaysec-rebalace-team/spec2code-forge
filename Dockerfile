@@ -11,9 +11,9 @@ WORKDIR /app
 # Copy package files for dependency caching
 COPY package.json package-lock.json ./
 
-# Install dependencies with clean install and retry logic
+# Install ALL dependencies (including devDependencies for build tools like Vite)
 RUN npm config set registry https://registry.npmjs.org/ && \
-    npm ci --only=production --silent --no-audit --no-fund
+    npm ci --silent --no-audit --no-fund
 
 # Copy frontend source code
 COPY . .
