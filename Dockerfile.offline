@@ -1,0 +1,55 @@
+# Offline-capable Dockerfile for AI Asset Rebalancing System
+# Repository: https://github.com/kakaopaysec-rebalace-team/spec2code-forge
+# For environments with network restrictions or DNS issues
+
+# Use minimal Python image without additional dependencies
+FROM python:3.11-slim
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Set working directory
+WORKDIR /app
+
+# Copy backend requirements first (for better caching)
+COPY backend/requirements.txt ./backend/
+
+# Install Python dependencies without system packages
+# This avoids the need for curl/wget which require network access
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r backend/requirements.txt
+
+# Copy backend source code
+COPY backend/ ./backend/
+
+# Copy pre-built frontend (must be built locally before Docker build)
+COPY dist ./frontend/dist/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data && \
+    chmod 755 /app/logs /app/data
+
+# Set final environment variables
+ENV PYTHONPATH=/app
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
+# Create non-root user for security (without additional packages)
+RUN groupadd -r appuser && \
+    useradd -r -g appuser -d /app -s /bin/bash appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# No health check (would require curl)
+# HEALTHCHECK is removed to avoid network dependency
+
+# Expose port
+EXPOSE $PORT
+
+# Start FastAPI server
+CMD ["python", "-m", "uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
