@@ -847,6 +847,39 @@ async def system_cleanup():
 
 # ================== Startup Event ==================
 
+@app.post("/database-ai/generate-strategy")
+async def generate_database_ai_strategy(
+    user_profile: Dict[str, Any],
+    current_holdings: List[Dict[str, Any]] = None
+):
+    """Database AI 전용 전략 생성 (API 키 불필요)"""
+    try:
+        from database_ai_engine import get_database_ai_engine
+        
+        logger.info(f"Database AI 전략 생성 요청: {user_profile.get('risk_tolerance', 'unknown')}")
+        
+        # Database AI Engine 사용
+        db_ai = await get_database_ai_engine()
+        strategy = await db_ai.generate_intelligent_strategy(
+            user_profile, 
+            current_holdings or []
+        )
+        
+        logger.info("✅ Database AI 전략 생성 성공")
+        return {
+            "status": "success",
+            "strategy": strategy,
+            "message": "Database AI 기반 전략 생성 완료 (API 키 불필요)"
+        }
+        
+    except Exception as e:
+        logger.error(f"Database AI 전략 생성 실패: {e}")
+        return {
+            "status": "error", 
+            "message": f"Database AI 전략 생성 실패: {str(e)}"
+        }
+
+
 @app.on_event("startup")
 async def startup_event():
     """애플리케이션 시작시 실행"""

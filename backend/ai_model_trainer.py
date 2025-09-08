@@ -71,19 +71,19 @@ class AIModelTrainer:
             # 데이터베이스 연결 확인
             self._init_expert_database()
             
-            # Claude API 연결 테스트 (API 키가 있는 경우)
+            # Database AI Engine 초기화 (Claude API 대신 우선 사용)
+            try:
+                from database_ai_engine import get_database_ai_engine
+                await get_database_ai_engine()
+                logger.info("✅ Database AI Engine 초기화 완료 - API 키 불필요")
+            except Exception as e:
+                logger.warning(f"Database AI Engine 초기화 실패: {e}")
+            
+            # Claude API는 보조적으로만 사용 (오류 로그 최소화)
             if self.client:
-                try:
-                    # 간단한 테스트 호출
-                    response = await self._analyze_content_with_claude(
-                        "테스트",
-                        "이것은 연결 테스트입니다. 'OK'라고만 응답해주세요."
-                    )
-                    logger.info("Claude API 연결 확인 완료")
-                except Exception as e:
-                    logger.warning(f"Claude API 연결 테스트 실패 (정상 작동): {str(e)}")
+                logger.info("Claude API 사용 가능 (보조 분석용)")
             else:
-                logger.warning("Claude API 키가 설정되지 않음 - Mock 데이터 모드로 작동")
+                logger.info("Database AI Engine 단독 모드 - 완전 자립형 시스템")
             
             logger.info("AI Model Trainer 비동기 초기화 완료")
         except Exception as e:
@@ -625,13 +625,40 @@ class AIModelTrainer:
                 processed_data, user_profile, user_insights
             )
             
-            # 3. AI 전략 생성
-            if self.client:
-                strategy = await self._generate_advanced_strategy_with_claude(comprehensive_context)
-            else:
-                strategy = await self._generate_enhanced_rule_based_strategy(
-                    processed_data, user_profile, user_insights
+            # 3. AI 전략 생성 (Database AI 우선)
+            try:
+                from database_ai_engine import get_database_ai_engine
+                db_ai = await get_database_ai_engine()
+                
+                # 현재 보유종목 변환
+                current_holdings = []
+                if not processed_data.empty:
+                    for _, row in processed_data.iterrows():
+                        current_holdings.append({
+                            'symbol': row.get('Symbol', ''),
+                            'name': row.get('Name', ''),
+                            'weight': row.get('Weight', 0.0) / 100.0 if 'Weight' in row else 0.0
+                        })
+                
+                # Database AI로 전략 생성
+                strategy = await db_ai.generate_intelligent_strategy(
+                    user_profile, 
+                    current_holdings,
+                    {'market_data': processed_data.to_dict('records') if not processed_data.empty else []}
                 )
+                
+                logger.info("✅ Database AI 전략 생성 성공")
+                
+            except Exception as db_ai_error:
+                logger.warning(f"Database AI 실패, 기존 방식 사용: {db_ai_error}")
+                
+                # 기존 방식 폴백
+                if self.client:
+                    strategy = await self._generate_advanced_strategy_with_claude(comprehensive_context)
+                else:
+                    strategy = await self._generate_enhanced_rule_based_strategy(
+                        processed_data, user_profile, user_insights
+                    )
             
             # 4. 전략 검증 및 최적화
             validated_strategy = await self._validate_and_optimize_strategy(strategy, processed_data)
