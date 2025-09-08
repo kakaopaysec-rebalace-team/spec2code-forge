@@ -160,26 +160,57 @@ tail -f frontend.log        # 프론트엔드 로그 실시간 확인
 
 ### 데이터베이스 관리
 ```bash
-./init-db.sh           # 데이터베이스 초기화
-./quick-db-fix.sh      # 빠른 DB 수정
-./fix-db-schema.sh     # 스키마 수정
+./init-db.sh                # 데이터베이스 초기화
+./quick-db-fix.sh          # 빠른 DB 수정
+./fix-db-schema.sh         # 스키마 수정
+
+# Rocky Linux 전용 도구
+./rocky-linux-db-fix.sh    # Rocky Linux DB 문제 해결
+./rocky-linux-diagnostic.sh # Rocky Linux 종합 진단
 ```
 
 ## 🌍 프로덕션 배포 가이드
 
 ### Rocky Linux 서버 배포
+
+#### 🚨 Rocky Linux에서 DB 오류 발생 시 (필수!):
+
+**1단계: 저장소 클론 및 권한 설정**
 ```bash
 # 1. 서버 접속
 ssh user@your-server.com
 
 # 2. 프로젝트 클론
-git clone https://github.com/your-repo/database-ai-system.git
-cd database-ai-system
+git clone https://github.com/kakaopaysec-rebalace-team/spec2code-forge.git
+cd spec2code-forge
 
-# 3. 자동 배포 실행
-chmod +x deploy-database-ai.sh
+# 3. 실행 권한 부여
+chmod +x *.sh
+```
+
+**2단계: Rocky Linux 전용 진단 및 수정**
+```bash
+# Rocky Linux 전용 시스템 진단
+./rocky-linux-diagnostic.sh
+
+# DB 오류가 발견되면 Rocky Linux 특화 수정 도구 실행
+./rocky-linux-db-fix.sh
+```
+
+**3단계: 일반 배포 실행**
+```bash
+# 자동 배포 실행
 ./deploy-database-ai.sh
 ```
+
+#### 📊 Rocky Linux 특화 문제 해결
+
+| 문제 유형 | 증상 | 해결 도구 |
+|----------|------|----------|
+| **SQLite 권한 오류** | "Permission denied" | `./rocky-linux-db-fix.sh` |
+| **스키마 불일치** | "no such column" | `./rocky-linux-db-fix.sh` |
+| **모듈 없음** | "ModuleNotFoundError" | 스크립트 자동 해결 |
+| **SELinux 차단** | 연결 거부 | `sudo setsebool -P httpd_can_network_connect 1` |
 
 ### 방화벽 설정
 ```bash
