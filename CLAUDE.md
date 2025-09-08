@@ -41,6 +41,9 @@ pip install -r requirements.txt
 
 # Start backend server (runs on port 8000)
 source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+# Or use the startup script
+python start_backend.py
 ```
 
 ## 🚀 Quick Start (추천)
@@ -80,7 +83,7 @@ source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 3. **Access Points**:
    - Frontend: http://localhost:8080
-   - Backend API: http://localhost:8000
+   - Backend API: http://localhost:8000 (note: start.sh uses port 8003)
    - API Docs: http://localhost:8000/docs
 
 ## Tech Stack & Architecture
@@ -117,6 +120,8 @@ source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 │   │   ├── Index.tsx       # Landing page
 │   │   ├── ProfileSetup.tsx # User input & portfolio setup
 │   │   ├── Results.tsx     # AI analysis results
+│   │   ├── Rebalancing.tsx # Portfolio rebalancing interface
+│   │   ├── Strategies.tsx  # Investment strategies page
 │   │   └── NotFound.tsx    # 404 page
 │   ├── components/ui/      # shadcn/ui components
 │   ├── hooks/              # Custom React hooks
@@ -131,9 +136,13 @@ source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     ├── user_data_processor.py # User document/URL processing
     ├── database_manager.py # Database operations & management
     ├── strategy_learner.py # ML strategy learning algorithms
+    ├── init_strategies.py  # Strategy initialization
     ├── start_backend.py    # Backend startup script
     ├── requirements.txt    # Python dependencies
-    └── .env.example        # Environment configuration template
+    ├── .env.example        # Environment configuration template
+    ├── *.db                # SQLite database files
+    ├── logs/               # Application logs
+    └── uploads/            # User uploaded files
 ```
 
 ## API Integration
@@ -143,6 +152,10 @@ The frontend connects to the backend through `src/lib/api.ts` which provides:
 - `getMarketData()` - Real-time market data
 - `analyzeUserData()` - Process user documents/URLs
 - `healthCheck()` - Backend status verification
+- `getUserHoldings()` - Get user's portfolio holdings
+- `getAllStrategies()` - Retrieve available investment strategies
+- `getStrategyTemplates()` - Get predefined strategy templates
+- `createHolding()`, `updateHolding()`, `deleteHolding()` - Holdings management
 
 ## Key Features Implementation
 
@@ -203,6 +216,29 @@ DATABASE_URL=asset_rebalancing.db
 CORS_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000
 ```
 
+## Deployment & Docker
+
+The project includes comprehensive deployment configurations:
+
+### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Manual Docker build
+docker build -t ai-rebalancing .
+
+# Run the container
+docker run -p 8080:8080 -p 8000:8000 ai-rebalancing
+```
+
+### Deployment Scripts
+- `./deploy.sh` - Main deployment script
+- `./deploy-offline.sh` - Offline deployment for network-restricted environments
+- `./deploy-ultimate.sh` - Ultimate deployment solution
+- `./setup-rocky-linux.sh` - Rocky Linux server setup
+- Various debugging and troubleshooting scripts
+
 ## Development Notes
 
 - **CORS**: Backend configured to allow localhost:8080 for frontend development
@@ -212,3 +248,5 @@ CORS_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000
 - **Mock Data**: Backend provides fallback mock data when external APIs fail
 - **Korean Support**: Full Korean language UI with Korean stock symbol mapping
 - **Security**: API keys stored in environment variables, never in code
+- **Port Configuration**: Frontend runs on 8080, backend on 8000 (or 8003 with start.sh)
+- **Database**: SQLite databases for user data, strategies, and simulation results
