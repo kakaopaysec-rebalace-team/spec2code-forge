@@ -1,33 +1,36 @@
-# Node.js
+# AI Asset Rebalancing System - Docker Ignore
+# Repository: https://github.com/kakaopaysec-rebalace-team/spec2code-forge
+
+# Git repository
+.git/
+.gitignore
+.github/
+
+# Node.js dependencies and build artifacts
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.npm
+.yarn-integrity
 
-# Python
-__pycache__/
+# Frontend development files
+.vite/
+dist/
+build/
+
+# Python virtual environment and cache
+backend/venv/
+backend/__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 env/
 venv/
-backend/venv/
-backend/path/
 
-# Build outputs
-dist/
-build/
-.next/
-.vite/
-
-# Logs
-*.log
-logs/
-backend.log
-frontend.log
-
-# Environment files
+# Environment and configuration files
 .env
 .env.local
 .env.development.local
@@ -35,17 +38,25 @@ frontend.log
 .env.production.local
 backend/.env
 
-# Git
-.git/
-.gitignore
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+backend/asset_rebalancing.db
+backend/expert_strategies.db
+backend/simulation_results.db
 
-# IDE
+# Log files
+*.log
+logs/
+backend.log
+frontend.log
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
 
@@ -54,10 +65,23 @@ Thumbs.db
 *.temp
 .cache/
 
-# Database files (if any)
-*.db
-*.sqlite
-*.sqlite3
-
-# Claude specific
+# Claude AI specific
 .claude/
+
+# Documentation and development scripts
+README.md
+CLAUDE.md
+RUN.md
+*.md
+docker-troubleshoot.sh
+check-git-sync.sh
+start.sh
+stop.sh
+restart.sh
+status.sh
+
+# Testing and development
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/

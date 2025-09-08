@@ -1,0 +1,43 @@
+# AI Asset Rebalancing System - Docker Compose
+# Repository: https://github.com/kakaopaysec-rebalace-team/spec2code-forge
+
+version: '3.8'
+
+services:
+  ai-rebalancing-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    env_file:
+      - .env
+    volumes:
+      # Mount data directory for persistent storage
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-rebalancing-network
+
+networks:
+  ai-rebalancing-network:
+    driver: bridge
+
+volumes:
+  app-data:
+    driver: local
+  app-logs:
+    driver: local
