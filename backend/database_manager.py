@@ -149,6 +149,48 @@ class DatabaseManager:
                     )
                 """)
                 
+                # 리밸런싱 전략 테이블
+                await db.execute("""
+                    CREATE TABLE IF NOT EXISTS rebalancing_strategies (
+                        strategy_id TEXT PRIMARY KEY,
+                        strategy_name TEXT NOT NULL,
+                        strategy_type TEXT NOT NULL,
+                        description TEXT,
+                        target_allocation TEXT NOT NULL,  -- JSON format
+                        expected_return REAL,
+                        volatility REAL,
+                        max_drawdown REAL,
+                        sharpe_ratio REAL,
+                        risk_level TEXT,
+                        tags TEXT,  -- JSON format
+                        user_id TEXT,  -- NULL for default strategies
+                        is_active BOOLEAN DEFAULT 1,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                """)
+                
+                # 보유 종목 테이블
+                await db.execute("""
+                    CREATE TABLE IF NOT EXISTS holdings (
+                        holding_id TEXT PRIMARY KEY,
+                        user_id TEXT,
+                        symbol TEXT NOT NULL,
+                        name TEXT,
+                        quantity REAL,
+                        purchase_price REAL,
+                        current_price REAL,
+                        market_value REAL,
+                        weight REAL,  -- portfolio weight percentage
+                        sector TEXT,
+                        currency TEXT DEFAULT 'USD',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                """)
+                
                 await db.commit()
                 logger.info("데이터베이스 초기화 완료")
                 
@@ -607,6 +649,207 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"사용자 데이터 백업 오류: {e}")
             return {}
+
+    # ================== 보유 종목 관리 ==================
+    
+    async def save_holding(self, user_id: str, symbol: str, name: str, quantity: float,
+                          purchase_price: float, current_price: float, weight: float,
+                          sector: str = None, currency: str = "USD") -> str:
+        """보유 종목 저장"""
+        holding_id = str(uuid.uuid4())
+        market_value = quantity * current_price
+        
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("""
+                    INSERT INTO holdings (holding_id, user_id, symbol, name, quantity,
+                                        purchase_price, current_price, market_value, weight,
+                                        sector, currency)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    holding_id, user_id, symbol, name, quantity,
+                    purchase_price, current_price, market_value, weight,
+                    sector, currency
+                ))
+                await db.commit()
+                logger.info(f"보유 종목 저장 완료: {symbol}")
+                return holding_id
+        except Exception as e:
+            logger.error(f"보유 종목 저장 오류: {e}")
+            raise
+    
+    async def get_user_holdings(self, user_id: str) -> List[Dict[str, Any]]:
+        """사용자의 보유 종목 조회"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute("""
+                    SELECT * FROM holdings WHERE user_id = ? ORDER BY weight DESC
+                """, (user_id,)) as cursor:
+                    rows = await cursor.fetchall()
+                    holdings = []
+                    for row in rows:
+                        holding = dict(row)
+                        holdings.append(holding)
+                    return holdings
+        except Exception as e:
+            logger.error(f"보유 종목 조회 오류: {e}")
+            return []
+    
+    async def get_all_holdings(self) -> List[Dict[str, Any]]:
+        """모든 보유 종목 조회 (관리자용)"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute("""
+                    SELECT h.*, u.name as user_name FROM holdings h
+                    LEFT JOIN users u ON h.user_id = u.user_id
+                    ORDER BY h.created_at DESC
+                """) as cursor:
+                    rows = await cursor.fetchall()
+                    holdings = []
+                    for row in rows:
+                        holding = dict(row)
+                        holdings.append(holding)
+                    return holdings
+        except Exception as e:
+            logger.error(f"전체 보유 종목 조회 오류: {e}")
+            return []
+    
+    async def update_holding_prices(self, user_id: str, price_updates: Dict[str, float]) -> bool:
+        """보유 종목 가격 업데이트"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                for symbol, current_price in price_updates.items():
+                    # 현재 보유량 조회
+                    async with db.execute("""
+                        SELECT quantity FROM holdings WHERE user_id = ? AND symbol = ?
+                    """, (user_id, symbol)) as cursor:
+                        row = await cursor.fetchone()
+                        if row:
+                            quantity = row[0]
+                            market_value = quantity * current_price
+                            
+                            await db.execute("""
+                                UPDATE holdings 
+                                SET current_price = ?, market_value = ?, updated_at = CURRENT_TIMESTAMP
+                                WHERE user_id = ? AND symbol = ?
+                            """, (current_price, market_value, user_id, symbol))
+                
+                await db.commit()
+                logger.info(f"가격 업데이트 완료: {len(price_updates)}개 종목")
+                return True
+        except Exception as e:
+            logger.error(f"가격 업데이트 오류: {e}")
+            return False
+    
+    async def delete_holding(self, holding_id: str) -> bool:
+        """보유 종목 삭제"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM holdings WHERE holding_id = ?", (holding_id,))
+                await db.commit()
+                logger.info(f"보유 종목 삭제 완료: {holding_id}")
+                return True
+        except Exception as e:
+            logger.error(f"보유 종목 삭제 오류: {e}")
+            return False
+    
+    # ================== 리밸런싱 전략 관리 ==================
+    
+    async def get_all_strategies(self, user_id: str = None) -> List[Dict[str, Any]]:
+        """모든 리밸런싱 전략 조회 (기본 전략 + 사용자 생성 전략)"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                
+                if user_id:
+                    # 특정 사용자의 전략도 포함하여 조회
+                    async with db.execute("""
+                        SELECT * FROM rebalancing_strategies 
+                        WHERE user_id IS NULL OR user_id = ?
+                        ORDER BY created_at DESC
+                    """, (user_id,)) as cursor:
+                        rows = await cursor.fetchall()
+                else:
+                    # 기본 전략만 조회 (user_id가 NULL인 것들)
+                    async with db.execute("""
+                        SELECT * FROM rebalancing_strategies 
+                        WHERE user_id IS NULL
+                        ORDER BY created_at DESC
+                    """) as cursor:
+                        rows = await cursor.fetchall()
+                
+                strategies = []
+                for row in rows:
+                    strategy = dict(row)
+                    strategy['target_allocation'] = json.loads(strategy['target_allocation'])
+                    strategy['tags'] = json.loads(strategy['tags'])
+                    strategies.append(strategy)
+                
+                return strategies
+        except Exception as e:
+            logger.error(f"전략 조회 오류: {e}")
+            return []
+    
+    async def get_strategy_by_id(self, strategy_id: str) -> Dict[str, Any]:
+        """ID로 특정 전략 조회"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute("""
+                    SELECT * FROM rebalancing_strategies 
+                    WHERE strategy_id = ?
+                """, (strategy_id,)) as cursor:
+                    row = await cursor.fetchone()
+                    if row:
+                        strategy = dict(row)
+                        strategy['target_allocation'] = json.loads(strategy['target_allocation'])
+                        strategy['tags'] = json.loads(strategy['tags'])
+                        return strategy
+                    return None
+        except Exception as e:
+            logger.error(f"전략 조회 오류: {e}")
+            return None
+    
+    async def save_rebalancing_strategy(self, strategy_id: str, strategy_name: str,
+                                      strategy_type: str, description: str,
+                                      target_allocation: Dict[str, float],
+                                      expected_return: float, volatility: float,
+                                      max_drawdown: float, sharpe_ratio: float,
+                                      risk_level: str, tags: List[str],
+                                      user_id: str = None) -> bool:
+        """리밸런싱 전략 저장"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("""
+                    INSERT OR REPLACE INTO rebalancing_strategies 
+                    (strategy_id, strategy_name, strategy_type, description, target_allocation,
+                     expected_return, volatility, max_drawdown, sharpe_ratio, risk_level,
+                     tags, user_id, is_active, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                """, (
+                    strategy_id,
+                    strategy_name,
+                    strategy_type,
+                    description,
+                    json.dumps(target_allocation),
+                    expected_return,
+                    volatility,
+                    max_drawdown,
+                    sharpe_ratio,
+                    risk_level,
+                    json.dumps(tags),
+                    user_id,
+                    datetime.now().isoformat(),
+                    datetime.now().isoformat()
+                ))
+                await db.commit()
+                logger.info(f"전략 저장 완료: {strategy_name}")
+                return True
+        except Exception as e:
+            logger.error(f"전략 저장 오류: {e}")
+            return False
 
 # 데이터베이스 매니저 싱글톤 인스턴스
 db_manager = DatabaseManager()

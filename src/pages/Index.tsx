@@ -1,18 +1,99 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, BarChart3, Target, Shield } from "lucide-react";
+import { TrendingUp, BarChart3, Target, Shield, Database, CheckCircle, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { healthCheck, getAllStrategies, getUserHoldings } from "@/lib/api";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [systemStatus, setSystemStatus] = useState({
+    api: 'checking',
+    strategies: 0,
+    holdings: 0,
+    lastCheck: null as Date | null
+  });
+
+  useEffect(() => {
+    const checkSystemStatus = async () => {
+      try {
+        console.log('Index: Checking system status...');
+        
+        // Check API health
+        await healthCheck();
+        
+        // Check strategies count
+        const strategiesResponse = await getAllStrategies();
+        
+        // Check holdings count
+        const holdingsResponse = await getUserHoldings('mock-user-001');
+        
+        setSystemStatus({
+          api: 'healthy',
+          strategies: strategiesResponse.strategies.length,
+          holdings: holdingsResponse.holdings.length,
+          lastCheck: new Date()
+        });
+        
+        console.log('Index: System status check complete', {
+          strategies: strategiesResponse.strategies.length,
+          holdings: holdingsResponse.holdings.length
+        });
+        
+      } catch (error) {
+        console.error('Index: System status check failed:', error);
+        setSystemStatus(prev => ({
+          ...prev,
+          api: 'error',
+          lastCheck: new Date()
+        }));
+      }
+    };
+
+    checkSystemStatus();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">AI 해외 주식 리밸런싱 시스템</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-bold">AI 해외 주식 리밸런싱 시스템</h1>
+            </div>
+            
+            {/* System Status */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                <span className="text-sm">DB 상태:</span>
+                {systemStatus.api === 'checking' && (
+                  <Badge variant="outline" className="text-yellow-600">
+                    확인 중...
+                  </Badge>
+                )}
+                {systemStatus.api === 'healthy' && (
+                  <Badge variant="default" className="bg-green-600">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    정상
+                  </Badge>
+                )}
+                {systemStatus.api === 'error' && (
+                  <Badge variant="destructive">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    오류
+                  </Badge>
+                )}
+              </div>
+              
+              {systemStatus.api === 'healthy' && (
+                <div className="text-xs text-muted-foreground">
+                  전략: {systemStatus.strategies}개 • 종목: {systemStatus.holdings}개
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

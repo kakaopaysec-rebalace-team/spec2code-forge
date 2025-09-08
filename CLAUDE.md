@@ -35,20 +35,41 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate
 
-# Install Python dependencies
+# Install Python dependencies from requirements.txt
 pip install --upgrade pip
-pip install fastapi uvicorn "pydantic>=2.0,<3.0" "pandas>=2.0" numpy yfinance requests beautifulsoup4 python-multipart aiofiles python-dotenv httpx lxml PyPDF2 arxiv anthropic
+pip install -r requirements.txt
 
 # Start backend server (runs on port 8000)
 source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Full System Startup
+## 🚀 Quick Start (추천)
+
+### 자동 스크립트 사용
+
+```bash
+# 시스템 시작 (백엔드 + 프론트엔드 자동 시작)
+./start.sh
+
+# 시스템 종료
+./stop.sh
+
+# 시스템 재시작
+./restart.sh
+
+# 시스템 상태 확인
+./status.sh
+```
+
+## Full System Startup (수동)
 
 1. **Backend Setup**:
    ```bash
    cd backend
    cp .env.example .env  # Edit with your API keys
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
    python start_backend.py
    ```
 
@@ -83,6 +104,9 @@ source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 - **Web Scraping**: BeautifulSoup4, requests for content analysis
 - **Document Processing**: PyPDF2 for file analysis
 - **Research Integration**: arXiv API for academic papers
+- **Database**: SQLite with aiosqlite for async operations
+- **Machine Learning**: scikit-learn, scipy for portfolio optimization
+- **Technical Analysis**: TA library for financial indicators
 
 ## Project Structure
 
@@ -104,8 +128,12 @@ source venv/bin/activate && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     ├── data_processor.py   # Market data collection & processing
     ├── ai_model_trainer.py # Claude AI integration & strategy generation
     ├── simulation_analyzer.py # Portfolio simulation & analysis
+    ├── user_data_processor.py # User document/URL processing
+    ├── database_manager.py # Database operations & management
+    ├── strategy_learner.py # ML strategy learning algorithms
     ├── start_backend.py    # Backend startup script
-    └── requirements.txt    # Python dependencies
+    ├── requirements.txt    # Python dependencies
+    └── .env.example        # Environment configuration template
 ```
 
 ## API Integration
@@ -148,12 +176,31 @@ VITE_ENV=development
 
 ### Backend (.env)
 ```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key
-KRX_API_KEY=your_krx_api_key
-GOOGLE_SEARCH_API_KEY=your_google_api_key
+# Core Application
+APP_NAME="AI Asset Rebalancing System"
 DEBUG=True
 HOST=0.0.0.0
 PORT=8000
+ENVIRONMENT=development
+
+# AI/ML Services
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
+
+# Financial Data APIs
+ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
+FINNHUB_API_KEY=your_finnhub_api_key_here
+MARKETSTACK_API_KEY=your_marketstack_api_key_here
+
+# Web Search & Content
+GOOGLE_SEARCH_API_KEY=your_google_search_api_key_here
+GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
+
+# Database
+DATABASE_URL=asset_rebalancing.db
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000
 ```
 
 ## Development Notes

@@ -1,106 +1,116 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, Shield, Zap, DollarSign, Brain, Target } from "lucide-react";
+import { ArrowLeft, TrendingUp, Shield, Zap, DollarSign, Brain, Target, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { getAllStrategies, RebalancingStrategy } from "@/lib/api";
 
 const Strategies = () => {
   const navigate = useNavigate();
+  const [strategies, setStrategies] = useState<RebalancingStrategy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const strategies = [
-    {
-      id: 'growth',
-      name: '성장형 전략',
-      description: '고성장 기업에 집중 투자하여 장기적 자본 증식을 추구',
-      icon: TrendingUp,
-      color: 'rgb(34, 197, 94)', // green-500
-      expectedReturn: '22.8%',
-      volatility: '24.5%',
-      maxDrawdown: '-18.3%',
-      sharpe: '0.82',
-      tags: ['고수익', '고변동성', '장기투자']
-    },
-    {
-      id: 'value',
-      name: '가치형 전략',
-      description: '저평가된 우량 기업을 발굴하여 안정적 수익을 추구',
-      icon: Shield,
-      color: 'rgb(59, 130, 246)', // blue-500
-      expectedReturn: '16.4%',
-      volatility: '18.2%',
-      maxDrawdown: '-12.7%',
-      sharpe: '0.74',
-      tags: ['안정성', '저변동성', '배당']
-    },
-    {
-      id: 'dividend',
-      name: '배당 중심 전략',
-      description: '높은 배당 수익률을 제공하는 기업들로 구성된 포트폴리오',
-      icon: DollarSign,
-      color: 'rgb(168, 85, 247)', // purple-500
-      expectedReturn: '14.2%',
-      volatility: '15.8%',
-      maxDrawdown: '-10.4%',
-      sharpe: '0.68',
-      tags: ['배당수익', '현금흐름', '안정성']
-    },
-    {
-      id: 'tech',
-      name: '기술주 집중 전략',
-      description: '혁신 기술 기업들에 집중하여 디지털 전환 수혜를 추구',
-      icon: Zap,
-      color: 'rgb(249, 115, 22)', // orange-500
-      expectedReturn: '26.7%',
-      volatility: '28.9%',
-      maxDrawdown: '-22.1%',
-      sharpe: '0.85',
-      tags: ['기술주', '혁신', '고성장']
-    },
-    {
-      id: 'conservative',
-      name: '안정형 전략',
-      description: '위험을 최소화하면서 꾸준한 수익을 추구하는 보수적 접근',
-      icon: Target,
-      color: 'rgb(20, 184, 166)', // teal-500
-      expectedReturn: '12.1%',
-      volatility: '12.4%',
-      maxDrawdown: '-7.8%',
-      sharpe: '0.65',
-      tags: ['저위험', '안정수익', '보수적']
-    },
-    {
-      id: 'ai',
-      name: 'AI 혁신 전략',
-      description: 'AI와 머신러닝 기술을 활용한 차세대 투자 전략',
-      icon: Brain,
-      color: 'rgb(236, 72, 153)', // pink-500
-      expectedReturn: '29.3%',
-      volatility: '26.1%',
-      maxDrawdown: '-19.7%',
-      sharpe: '0.94',
-      tags: ['AI', '머신러닝', '혁신기술']
+  // 실제 백엔드에서 전략 데이터 가져오기
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllStrategies();
+        setStrategies(response.strategies);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch strategies:', err);
+        setError('전략을 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStrategies();
+  }, []);
+
+  // 로딩 상태
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p className="text-lg">전략을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>다시 시도</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 아이콘 매핑 함수 (실제 전략 데이터용)
+  const getStrategyIcon = (strategyName: string, tags: string[]) => {
+    if (tags.includes('AI') || tags.includes('혁신기술') || tags.includes('AI생성')) return Brain;
+    if (tags.includes('기술주') || tags.includes('디지털전환')) return Zap;
+    if (tags.includes('배당') || tags.includes('인컴') || tags.includes('현금흐름')) return DollarSign;
+    if (tags.includes('안정성') || tags.includes('보수적') || tags.includes('저위험')) return Shield;
+    if (tags.includes('성장') || tags.includes('고성장') || tags.includes('고수익')) return TrendingUp;
+    return Target;
+  };
+
+  // 색상 매핑 함수
+  const getStrategyColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case '높음': return 'rgb(239, 68, 68)'; // red-500
+      case '중간': return 'rgb(59, 130, 246)'; // blue-500
+      case '낮음': return 'rgb(34, 197, 94)'; // green-500
+      default: return 'rgb(107, 114, 128)'; // gray-500
     }
-  ];
+  };
 
-  // Performance simulation data for all strategies
-  const performanceData = [
-    { month: '2023-01', growth: 100, value: 100, dividend: 100, tech: 100, conservative: 100, ai: 100, sp500: 100 },
-    { month: '2023-03', growth: 108, value: 104, dividend: 103, tech: 112, conservative: 102, ai: 115, sp500: 103 },
-    { month: '2023-06', growth: 115, value: 108, dividend: 106, tech: 98, conservative: 104, ai: 128, sp500: 107 },
-    { month: '2023-09', growth: 125, value: 112, dividend: 110, tech: 135, conservative: 106, ai: 142, sp500: 112 },
-    { month: '2023-12', growth: 135, value: 118, dividend: 115, tech: 148, conservative: 108, ai: 158, sp500: 118 },
-    { month: '2024-03', growth: 142, value: 122, dividend: 118, tech: 156, conservative: 110, ai: 165, sp500: 120 },
-    { month: '2024-06', growth: 158, value: 128, dividend: 122, tech: 172, conservative: 112, ai: 185, sp500: 125 },
-    { month: '2024-09', growth: 164, value: 132, dividend: 125, tech: 178, conservative: 114, ai: 195, sp500: 130 },
-  ];
+  // Generate performance simulation data based on actual strategies
+  const performanceData = (() => {
+    const months = [
+      '2023-01', '2023-03', '2023-06', '2023-09', 
+      '2023-12', '2024-03', '2024-06', '2024-09'
+    ];
+    
+    return months.map((month, index) => {
+      const dataPoint: any = { month, sp500: 100 + (index * 3) }; // S&P 500 benchmark
+      
+      // Generate performance data for each strategy based on their expected returns
+      strategies.slice(0, 6).forEach((strategy) => {
+        const monthlyReturn = strategy.expected_return / 12; // Convert annual return to monthly
+        const volatility = strategy.volatility / Math.sqrt(12); // Monthly volatility
+        
+        // Add some randomness to simulate market conditions
+        const randomFactor = (Math.random() - 0.5) * volatility * 0.3;
+        
+        // Calculate cumulative performance with some realistic simulation
+        const basePerformance = 100 * Math.pow(1 + (monthlyReturn + randomFactor) / 100, index + 1);
+        const strategyKey = strategy.strategy_name.replace(' 포트폴리오', '').replace(' ', '').toLowerCase();
+        
+        dataPoint[strategyKey] = Math.round(basePerformance * 100) / 100;
+      });
+      
+      return dataPoint;
+    });
+  })();
 
   // Risk-Return comparison data
   const riskReturnData = strategies.map(strategy => ({
-    name: strategy.name,
-    return: parseFloat(strategy.expectedReturn),
-    risk: parseFloat(strategy.volatility),
-    color: strategy.color
+    name: strategy.strategy_name.replace(' 포트폴리오', ''),
+    return: strategy.expected_return,
+    risk: strategy.volatility,
+    riskLevel: strategy.risk_level
   }));
 
   return (
@@ -122,25 +132,37 @@ const Strategies = () => {
           {/* Strategy Cards */}
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
             {strategies.map((strategy) => {
-              const IconComponent = strategy.icon;
+              const IconComponent = getStrategyIcon(strategy.strategy_name, strategy.tags);
+              const strategyColor = getStrategyColor(strategy.risk_level);
+              
               return (
-                <Card key={strategy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card key={strategy.strategy_id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <div 
                         className="p-2 rounded-lg"
-                        style={{ backgroundColor: `${strategy.color}20`, color: strategy.color }}
+                        style={{ backgroundColor: `${strategyColor}20`, color: strategyColor }}
                       >
                         <IconComponent className="h-6 w-6" />
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">{strategy.name}</CardTitle>
-                        <div className="flex gap-1 mt-2">
-                          {strategy.tags.map((tag) => (
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{strategy.strategy_name}</CardTitle>
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {strategy.tags.slice(0, 3).map((tag: string) => (
                             <Badge key={tag} variant="secondary" className="text-xs">
                               {tag}
                             </Badge>
                           ))}
+                          {strategy.strategy_type === 'ai_generated' && (
+                            <Badge variant="outline" className="text-xs border-purple-500 text-purple-600">
+                              AI 생성
+                            </Badge>
+                          )}
+                          {strategy.user_id && (
+                            <Badge variant="outline" className="text-xs border-blue-500 text-blue-600">
+                              내 전략
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -152,19 +174,34 @@ const Strategies = () => {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <div className="text-muted-foreground">예상 수익률</div>
-                        <div className="font-semibold text-green-600">{strategy.expectedReturn}</div>
+                        <div className="font-semibold text-green-600">{strategy.expected_return.toFixed(1)}%</div>
                       </div>
                       <div>
                         <div className="text-muted-foreground">변동성</div>
-                        <div className="font-semibold">{strategy.volatility}</div>
+                        <div className="font-semibold">{strategy.volatility.toFixed(1)}%</div>
                       </div>
                       <div>
                         <div className="text-muted-foreground">최대 낙폭</div>
-                        <div className="font-semibold text-red-600">{strategy.maxDrawdown}</div>
+                        <div className="font-semibold text-red-600">{strategy.max_drawdown.toFixed(1)}%</div>
                       </div>
                       <div>
                         <div className="text-muted-foreground">샤프 비율</div>
-                        <div className="font-semibold">{strategy.sharpe}</div>
+                        <div className="font-semibold">{strategy.sharpe_ratio.toFixed(2)}</div>
+                      </div>
+                    </div>
+                    
+                    {/* 포트폴리오 구성 미리보기 */}
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="text-xs text-muted-foreground mb-2">주요 구성</div>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(strategy.target_allocation)
+                          .sort(([,a], [,b]) => (b as number) - (a as number))
+                          .slice(0, 3)
+                          .map(([symbol, weight]) => (
+                            <span key={symbol} className="text-xs px-2 py-1 bg-muted rounded">
+                              {symbol} {(weight as number).toFixed(0)}%
+                            </span>
+                          ))}
                       </div>
                     </div>
                   </CardContent>
@@ -177,24 +214,47 @@ const Strategies = () => {
           <Card>
             <CardHeader>
               <CardTitle>전략별 성과 비교 (누적 수익률)</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                실제 전략 데이터를 기반으로 한 시뮬레이션 결과입니다
+              </p>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={500}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => [`${(value - 100).toFixed(1)}%`, '']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="growth" stroke="rgb(34, 197, 94)" strokeWidth={2} name="성장형 전략" />
-                  <Line type="monotone" dataKey="value" stroke="rgb(59, 130, 246)" strokeWidth={2} name="가치형 전략" />
-                  <Line type="monotone" dataKey="dividend" stroke="rgb(168, 85, 247)" strokeWidth={2} name="배당 중심 전략" />
-                  <Line type="monotone" dataKey="tech" stroke="rgb(249, 115, 22)" strokeWidth={2} name="기술주 집중 전략" />
-                  <Line type="monotone" dataKey="conservative" stroke="rgb(20, 184, 166)" strokeWidth={2} name="안정형 전략" />
-                  <Line type="monotone" dataKey="ai" stroke="rgb(236, 72, 153)" strokeWidth={2} name="AI 혁신 전략" />
-                  <Line type="monotone" dataKey="sp500" stroke="#8884D8" strokeWidth={2} strokeDasharray="5 5" name="S&P 500" />
-                </LineChart>
-              </ResponsiveContainer>
+              {strategies.length === 0 ? (
+                <div className="flex items-center gap-2 py-8 justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>전략 데이터를 로딩 중...</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => [`${(value - 100).toFixed(1)}%`, '']} />
+                    <Legend />
+                    {/* Dynamic lines based on actual strategies */}
+                    {strategies.slice(0, 6).map((strategy, index) => {
+                      const strategyKey = strategy.strategy_name.replace(' 포트폴리오', '').replace(' ', '').toLowerCase();
+                      const colors = [
+                        'rgb(34, 197, 94)', 'rgb(59, 130, 246)', 'rgb(168, 85, 247)', 
+                        'rgb(249, 115, 22)', 'rgb(20, 184, 166)', 'rgb(236, 72, 153)'
+                      ];
+                      
+                      return (
+                        <Line 
+                          key={strategy.strategy_id}
+                          type="monotone" 
+                          dataKey={strategyKey} 
+                          stroke={colors[index % colors.length]} 
+                          strokeWidth={2} 
+                          name={strategy.strategy_name.replace(' 포트폴리오', '')} 
+                        />
+                      );
+                    })}
+                    <Line type="monotone" dataKey="sp500" stroke="#8884D8" strokeWidth={2} strokeDasharray="5 5" name="S&P 500" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 

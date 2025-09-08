@@ -602,6 +602,152 @@ async def get_analysis_result(analysis_id: str):
         logger.error(f"Get analysis result failed: {e}")
         raise HTTPException(status_code=500, detail="분석 결과 조회 실패")
 
+# ================== Holdings Management ==================
+
+@app.get("/users/{user_id}/holdings")
+async def get_user_holdings(user_id: str):
+    """사용자의 보유 종목 조회"""
+    try:
+        db_manager = await get_database_manager()
+        holdings = await db_manager.get_user_holdings(user_id)
+        
+        # 총 포트폴리오 가치 계산
+        total_value = sum(holding['market_value'] for holding in holdings)
+        
+        return {
+            "status": "success",
+            "user_id": user_id,
+            "holdings": holdings,
+            "total_value": total_value,
+            "count": len(holdings)
+        }
+    except Exception as e:
+        logger.error(f"Get user holdings failed: {e}")
+        raise HTTPException(status_code=500, detail="보유 종목 조회 실패")
+
+@app.get("/holdings")
+async def get_all_holdings():
+    """모든 보유 종목 조회 (관리자용)"""
+    try:
+        db_manager = await get_database_manager()
+        holdings = await db_manager.get_all_holdings()
+        
+        return {
+            "status": "success",
+            "holdings": holdings,
+            "count": len(holdings)
+        }
+    except Exception as e:
+        logger.error(f"Get all holdings failed: {e}")
+        raise HTTPException(status_code=500, detail="전체 보유 종목 조회 실패")
+
+@app.post("/users/{user_id}/holdings")
+async def create_holding(user_id: str, holding_data: Dict[str, Any]):
+    """새 보유 종목 추가"""
+    try:
+        db_manager = await get_database_manager()
+        
+        holding_id = await db_manager.save_holding(
+            user_id=user_id,
+            symbol=holding_data['symbol'],
+            name=holding_data.get('name', ''),
+            quantity=holding_data['quantity'],
+            purchase_price=holding_data['purchase_price'],
+            current_price=holding_data['current_price'],
+            weight=holding_data.get('weight', 0),
+            sector=holding_data.get('sector', ''),
+            currency=holding_data.get('currency', 'USD')
+        )
+        
+        return {
+            "status": "success",
+            "holding_id": holding_id,
+            "message": "보유 종목이 추가되었습니다"
+        }
+    except Exception as e:
+        logger.error(f"Create holding failed: {e}")
+        raise HTTPException(status_code=400, detail=f"보유 종목 추가 실패: {str(e)}")
+
+@app.put("/users/{user_id}/holdings/prices")
+async def update_holding_prices(user_id: str, price_updates: Dict[str, float]):
+    """보유 종목 가격 업데이트"""
+    try:
+        db_manager = await get_database_manager()
+        success = await db_manager.update_holding_prices(user_id, price_updates)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail="가격 업데이트 실패")
+        
+        return {
+            "status": "success",
+            "message": f"{len(price_updates)}개 종목의 가격이 업데이트되었습니다"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update holding prices failed: {e}")
+        raise HTTPException(status_code=500, detail="가격 업데이트 실패")
+
+@app.delete("/holdings/{holding_id}")
+async def delete_holding(holding_id: str):
+    """보유 종목 삭제"""
+    try:
+        db_manager = await get_database_manager()
+        success = await db_manager.delete_holding(holding_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="보유 종목을 찾을 수 없습니다")
+        
+        return {
+            "status": "success", 
+            "message": "보유 종목이 삭제되었습니다"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete holding failed: {e}")
+        raise HTTPException(status_code=500, detail="보유 종목 삭제 실패")
+
+# ================== Rebalancing Strategies ==================
+
+@app.get("/strategies")
+async def get_all_strategies(user_id: str = None):
+    """모든 리밸런싱 전략 조회 (기본 전략 + 사용자 생성 전략)"""
+    try:
+        db_manager = await get_database_manager()
+        
+        # 모든 전략 조회
+        all_strategies = await db_manager.get_all_strategies(user_id)
+        
+        return {
+            "status": "success",
+            "strategies": all_strategies,
+            "count": len(all_strategies)
+        }
+    except Exception as e:
+        logger.error(f"Get all strategies failed: {e}")
+        raise HTTPException(status_code=500, detail="전략 조회 실패")
+
+@app.get("/strategies/{strategy_id}")
+async def get_strategy_details(strategy_id: str):
+    """특정 전략 상세 조회"""
+    try:
+        db_manager = await get_database_manager()
+        strategy = await db_manager.get_strategy_by_id(strategy_id)
+        
+        if not strategy:
+            raise HTTPException(status_code=404, detail="전략을 찾을 수 없습니다")
+            
+        return {
+            "status": "success",
+            "strategy": strategy
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get strategy details failed: {e}")
+        raise HTTPException(status_code=500, detail="전략 상세 조회 실패")
+
 # ================== Strategy Templates ==================
 
 @app.get("/strategies/templates")

@@ -3,6 +3,12 @@ import axios from 'axios';
 // API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Only log in development
+if (import.meta.env.DEV) {
+  console.log('API: Base URL configured as:', API_BASE_URL);
+  console.log('API: Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -14,7 +20,9 @@ const api = axios.create({
 // Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    if (import.meta.env.DEV) {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    }
     return config;
   },
   (error) => {
@@ -26,10 +34,27 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    if (import.meta.env.DEV) {
+      console.log(`API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+      if (response.data && response.config.url?.includes('strategies')) {
+        console.log('API Strategies count:', response.data.strategies?.length || 0);
+      }
+      if (response.data && response.config.url?.includes('holdings')) {
+        console.log('API Holdings count:', response.data.holdings?.length || 0, 'Total value:', response.data.total_value);
+      }
+    }
     return response;
   },
   (error) => {
     console.error('API Response Error:', error);
+    if (import.meta.env.DEV) {
+      console.error('API Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      });
+    }
     if (error.response?.status === 500) {
       console.error('Server Error:', error.response.data);
     }
@@ -137,6 +162,54 @@ export interface MarketDataResponse {
   };
 }
 
+export interface Holding {
+  holding_id: string;
+  user_id: string;
+  symbol: string;
+  name: string;
+  quantity: number;
+  purchase_price: number;
+  current_price: number;
+  market_value: number;
+  weight: number;
+  sector?: string;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HoldingsResponse {
+  status: string;
+  user_id: string;
+  holdings: Holding[];
+  total_value: number;
+  count: number;
+}
+
+export interface RebalancingStrategy {
+  strategy_id: string;
+  strategy_name: string;
+  strategy_type: string;
+  description: string;
+  target_allocation: Record<string, number>;
+  expected_return: number;
+  volatility: number;
+  max_drawdown: number;
+  sharpe_ratio: number;
+  risk_level: string;
+  tags: string[];
+  user_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StrategiesResponse {
+  status: string;
+  strategies: RebalancingStrategy[];
+  count: number;
+}
+
 // API functions
 export const healthCheck = async (): Promise<{ status: string; timestamp: string }> => {
   const response = await api.get('/health');
@@ -160,6 +233,37 @@ export const analyzeUserData = async (userData: UserData) => {
 
 export const getStrategyTemplates = async () => {
   const response = await api.get('/strategies/templates');
+  return response.data;
+};
+
+export const getUserHoldings = async (userId: string): Promise<HoldingsResponse> => {
+  const response = await api.get(`/users/${userId}/holdings`);
+  return response.data;
+};
+
+export const getAllStrategies = async (userId?: string): Promise<StrategiesResponse> => {
+  const params = userId ? { user_id: userId } : {};
+  const response = await api.get('/strategies', { params });
+  return response.data;
+};
+
+export const getStrategyDetails = async (strategyId: string): Promise<{ status: string; strategy: RebalancingStrategy }> => {
+  const response = await api.get(`/strategies/${strategyId}`);
+  return response.data;
+};
+
+export const createHolding = async (userId: string, holdingData: Partial<Holding>) => {
+  const response = await api.post(`/users/${userId}/holdings`, holdingData);
+  return response.data;
+};
+
+export const updateHoldingPrices = async (userId: string, priceUpdates: Record<string, number>) => {
+  const response = await api.put(`/users/${userId}/holdings/prices`, priceUpdates);
+  return response.data;
+};
+
+export const deleteHolding = async (holdingId: string) => {
+  const response = await api.delete(`/holdings/${holdingId}`);
   return response.data;
 };
 
