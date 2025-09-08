@@ -157,10 +157,28 @@ sudo firewall-cmd --permanent --add-port=8080/tcp
 sudo firewall-cmd --reload
 ```
 
-### Docker 배포 (선택사항)
+### Docker 배포
+
+#### Rocky Linux Docker (권장)
+```bash
+# Rocky Linux 최적화 Docker 배포
+chmod +x deploy-rocky-docker.sh
+./deploy-rocky-docker.sh
+
+# 접속: http://localhost:8080
+```
+
+#### 일반 Docker 배포
 ```bash
 docker-compose up -d
 ```
+
+**📋 Rocky Linux Docker 특징:**
+- 🐧 Rocky Linux 9 베이스
+- 🆓 API 키 완전 불필요
+- 🧠 318개 전문가 전략 내장
+- ⚡ 원클릭 자동 배포
+- 📊 실시간 헬스체크
 
 ## 📈 비교 우위
 
