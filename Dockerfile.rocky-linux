@@ -37,9 +37,8 @@ RUN dnf update -y && \
         net-tools && \
     dnf clean all
 
-# Node.js 18 설치 (Rocky Linux 공식 저장소)
-RUN dnf module install -y nodejs:18/common && \
-    npm install -g npm@latest
+# Node.js 18 설치 및 npm 버전 고정
+RUN dnf module install -y nodejs:18/common
 
 # 시스템 검증
 RUN python3 --version && \
