@@ -55,6 +55,11 @@ else
     echo "   ✅ 빌드된 프론트엔드 발견"
 fi
 
+# 4. dist 디렉토리 준비
+echo ""
+echo "📁 dist 디렉토리 준비..."
+mkdir -p dist/
+
 # 4. 간단한 Dockerfile 생성 (오프라인)
 echo ""
 echo "🐳 간단한 Dockerfile 생성..."
@@ -72,7 +77,8 @@ RUN pip install --no-cache-dir fastapi==0.104.0 uvicorn==0.24.0 || \
 COPY backend/ ./backend/
 
 # 프론트엔드 복사 (로컬 빌드)
-COPY dist ./frontend/dist/
+RUN mkdir -p ./frontend/dist/
+COPY dist/ ./frontend/dist/
 
 # 디렉토리 생성
 RUN mkdir -p /app/logs /app/data

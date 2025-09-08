@@ -39,8 +39,39 @@ RUN pip install --upgrade pip && \
 # Copy backend source code
 COPY backend/ ./backend/
 
-# Copy pre-built frontend (must be built locally before Docker build)
-COPY dist ./frontend/dist/ 2>/dev/null || echo "No pre-built frontend found"
+# Create frontend directory and handle frontend files
+RUN mkdir -p ./frontend/dist/
+
+# Create basic HTML (will be overwritten if dist exists)
+RUN cat > ./frontend/dist/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Asset Rebalancing System</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .status { padding: 20px; background: #f0f9ff; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI Asset Rebalancing System</h1>
+        <div class="status">
+            <h2>✅ Backend API Available</h2>
+            <p><strong>API Documentation:</strong> <a href="/docs">/docs</a></p>
+            <p><strong>Health Check:</strong> <a href="/health">/health</a></p>
+        </div>
+    </div>
+</body>
+</html>
+EOF
+
+# Copy dist directory only if it exists
+# First create empty dist to avoid COPY errors
+RUN mkdir -p dist/
+COPY dist/ ./frontend/dist/
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/data && \
