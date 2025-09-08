@@ -65,8 +65,10 @@ RUN cd backend && \
     pip install --no-cache-dir aiosqlite pandas numpy scikit-learn
 
 # Node.js 의존성 설치 및 프론트엔드 빌드
-RUN npm ci --only=production && \
+RUN npm ci && \
     npm run build && \
+    # 빌드 후 개발 의존성 정리
+    npm prune --omit=dev && \
     # 빌드 캐시 정리
     npm cache clean --force
 
