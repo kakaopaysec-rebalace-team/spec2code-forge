@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  database-ai-rocky:
+    build:
+      context: .
+      dockerfile: Dockerfile.rocky-linux
+    container_name: database-ai-rocky-linux
+    ports:
+      - "8003:8003"  # Backend API
+      - "8080:8080"  # Frontend
+    environment:
+      - NODE_ENV=production
+      - PORT=8003
+      - FRONTEND_PORT=8080
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      # 데이터베이스 지속성을 위한 볼륨 (선택사항)
+      - database_data:/app/backend
+    networks:
+      - database-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.database-ai.description=API 키 불필요한 자립형 Database AI 시스템"
+      - "com.database-ai.version=1.0.0"
+      - "com.database-ai.platform=rocky-linux"
+
+volumes:
+  database_data:
+    driver: local
+    labels:
+      - "com.database-ai.volume=database-storage"
+
+networks:
+  database-ai-network:
+    driver: bridge
+    labels:
+      - "com.database-ai.network=main"
