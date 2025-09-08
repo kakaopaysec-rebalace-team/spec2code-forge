@@ -847,6 +847,52 @@ async def system_cleanup():
 
 # ================== Startup Event ==================
 
+@app.get("/database-ai/generate-strategy")
+async def get_database_ai_info():
+    """Database AI 엔드포인트 정보 및 사용법"""
+    return {
+        "name": "Database AI Strategy Generator",
+        "description": "API 키 불필요한 자립형 포트폴리오 분석 시스템",
+        "version": "1.0.0",
+        "features": [
+            "318개 전문가 전략 활용",
+            "워런 버핏, 피터 린치, 레이 달리오 등 세계적 투자자 전략 융합", 
+            "67-71% 신뢰도의 실시간 포트폴리오 최적화",
+            "완전 오프라인 작동 가능"
+        ],
+        "usage": {
+            "method": "POST",
+            "endpoint": "/database-ai/generate-strategy",
+            "required_fields": {
+                "user_profile": {
+                    "risk_tolerance": "conservative | moderate | aggressive",
+                    "investment_goal": "wealth_building | retirement | income | growth",
+                    "investment_horizon": "number (years)"
+                }
+            },
+            "optional_fields": {
+                "current_holdings": "array of current portfolio holdings"
+            },
+            "example_request": {
+                "user_profile": {
+                    "risk_tolerance": "moderate",
+                    "investment_goal": "wealth_building",
+                    "investment_horizon": 10
+                },
+                "current_holdings": []
+            }
+        },
+        "curl_example": """curl -X POST "http://localhost:8003/database-ai/generate-strategy" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "user_profile": {
+    "risk_tolerance": "moderate",
+    "investment_goal": "wealth_building",
+    "investment_horizon": 10
+  }
+}'"""
+    }
+
 @app.post("/database-ai/generate-strategy")
 async def generate_database_ai_strategy(
     user_profile: Dict[str, Any],
@@ -869,14 +915,21 @@ async def generate_database_ai_strategy(
         return {
             "status": "success",
             "strategy": strategy,
-            "message": "Database AI 기반 전략 생성 완료 (API 키 불필요)"
+            "message": "Database AI 기반 전략 생성 완료 (API 키 불필요)",
+            "api_info": {
+                "expert_strategies_used": len(strategy.get("strategy_sources", [])),
+                "confidence_score": strategy.get("confidence_score", 0),
+                "strategy_type": "database_ai",
+                "api_key_required": False
+            }
         }
         
     except Exception as e:
         logger.error(f"Database AI 전략 생성 실패: {e}")
         return {
             "status": "error", 
-            "message": f"Database AI 전략 생성 실패: {str(e)}"
+            "message": f"Database AI 전략 생성 실패: {str(e)}",
+            "help": "GET /database-ai/generate-strategy 에서 사용법을 확인하세요"
         }
 
 
