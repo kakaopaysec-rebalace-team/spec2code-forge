@@ -37,17 +37,18 @@ ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Fix DNS resolution
-RUN echo 'nameserver 8.8.8.8' > /etc/resolv.conf && \
-    echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
-
 # Working directory
 WORKDIR /app
 
 # Install Python dependencies
 COPY backend/requirements.txt ./backend/
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r backend/requirements.txt
+    pip install --no-cache-dir --timeout 60 --retries 3 \
+    --index-url https://pypi.org/simple/ \
+    --trusted-host pypi.org \
+    --trusted-host pypi.python.org \
+    --trusted-host files.pythonhosted.org \
+    -r backend/requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend/

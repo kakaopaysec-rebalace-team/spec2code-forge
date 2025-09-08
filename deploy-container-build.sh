@@ -61,8 +61,6 @@ docker build \
     --rm \
     --force-rm \
     --progress=plain \
-    --build-arg DNS1=8.8.8.8 \
-    --build-arg DNS2=8.8.4.4 \
     .
 
 echo "   ✅ Docker 빌드 성공: ${IMAGE_NAME}"
