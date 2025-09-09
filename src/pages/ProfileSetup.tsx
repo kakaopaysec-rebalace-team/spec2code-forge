@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Loader2, TrendingUp, Building2, PieChart, Zap, BookOpen, Upload, Link, FileText, CheckCircle, AlertCircle } from "lucide-react";
-import { getUserHoldings, getAllStrategies, uploadUserText, uploadUserFile } from "@/lib/api";
+import { getUserHoldings, getAllStrategies, uploadUserText, uploadUserFile, createStrategyFromAnalysis } from "@/lib/api";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -23,6 +23,13 @@ const ProfileSetup = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<{ type: string; message: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Strategy saving states
+  const [lastAnalysisResult, setLastAnalysisResult] = useState<any>(null);
+  const [showStrategyForm, setShowStrategyForm] = useState(false);
+  const [strategyName, setStrategyName] = useState("");
+  const [strategyDescription, setStrategyDescription] = useState("");
+  const [isSavingStrategy, setIsSavingStrategy] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -74,8 +81,10 @@ const ProfileSetup = () => {
     
     setIsUploading(true);
     try {
-      await uploadUserText('mock-user-001', urlInput, 'url');
+      const result = await uploadUserText('mock-user-001', urlInput, 'url');
       setUploadStatus({ type: 'success', message: 'URL이 성공적으로 분석되었습니다!' });
+      setLastAnalysisResult(result.result);
+      setShowStrategyForm(true);
       setUrlInput("");
     } catch (error) {
       setUploadStatus({ type: 'error', message: 'URL 분석에 실패했습니다.' });
@@ -89,8 +98,10 @@ const ProfileSetup = () => {
     
     setIsUploading(true);
     try {
-      await uploadUserText('mock-user-001', memoInput, 'text');
+      const result = await uploadUserText('mock-user-001', memoInput, 'text');
       setUploadStatus({ type: 'success', message: '투자 메모가 성공적으로 분석되었습니다!' });
+      setLastAnalysisResult(result.result);
+      setShowStrategyForm(true);
       setMemoInput("");
     } catch (error) {
       setUploadStatus({ type: 'error', message: '메모 분석에 실패했습니다.' });
@@ -104,13 +115,44 @@ const ProfileSetup = () => {
     
     setIsUploading(true);
     try {
-      await uploadUserFile('mock-user-001', selectedFile);
+      const result = await uploadUserFile('mock-user-001', selectedFile);
       setUploadStatus({ type: 'success', message: `파일 "${selectedFile.name}"이 성공적으로 분석되었습니다!` });
+      setLastAnalysisResult(result.result);
+      setShowStrategyForm(true);
       setSelectedFile(null);
     } catch (error) {
       setUploadStatus({ type: 'error', message: '파일 분석에 실패했습니다.' });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleStrategySave = async () => {
+    if (!strategyName.trim() || !lastAnalysisResult) return;
+    
+    setIsSavingStrategy(true);
+    try {
+      const result = await createStrategyFromAnalysis(
+        'mock-user-001',
+        strategyName,
+        lastAnalysisResult,
+        strategyDescription
+      );
+      
+      setUploadStatus({ type: 'success', message: `'${strategyName}' 전략이 성공적으로 저장되었습니다!` });
+      setShowStrategyForm(false);
+      setStrategyName("");
+      setStrategyDescription("");
+      setLastAnalysisResult(null);
+      
+      // 전략 목록 새로고침
+      const strategiesResponse = await getAllStrategies();
+      setStrategies(strategiesResponse.strategies || []);
+      
+    } catch (error) {
+      setUploadStatus({ type: 'error', message: '전략 저장에 실패했습니다.' });
+    } finally {
+      setIsSavingStrategy(false);
     }
   };
 
@@ -447,6 +489,83 @@ const ProfileSetup = () => {
                       <AlertCircle className="h-4 w-4" />
                     )}
                     <span className="text-sm">{uploadStatus.message}</span>
+                  </div>
+                )}
+
+                {/* Strategy Save Form */}
+                {showStrategyForm && lastAnalysisResult && (
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-blue-600" />
+                      분석 결과를 전략으로 저장
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="strategyName">전략 이름 *</Label>
+                        <Input
+                          id="strategyName"
+                          value={strategyName}
+                          onChange={(e) => setStrategyName(e.target.value)}
+                          placeholder="예: 나만의 보수적 전략"
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="strategyDescription">전략 설명 (선택)</Label>
+                        <Textarea
+                          id="strategyDescription"
+                          value={strategyDescription}
+                          onChange={(e) => setStrategyDescription(e.target.value)}
+                          placeholder="이 전략의 특징이나 목표를 간단히 설명해주세요..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      {/* Analysis Preview */}
+                      {lastAnalysisResult?.investment_insights && (
+                        <div className="bg-gray-50 p-3 rounded-md">
+                          <h5 className="font-medium mb-2">분석된 투자 성향</h5>
+                          <div className="text-sm space-y-1">
+                            <p><strong>투자 성향:</strong> {lastAnalysisResult.investment_insights.investment_style || '정보 없음'}</p>
+                            <p><strong>투자 목표:</strong> {lastAnalysisResult.investment_insights.investment_goal || '정보 없음'}</p>
+                            <p><strong>리스크 점수:</strong> {lastAnalysisResult.investment_insights.risk_score || '정보 없음'}/10</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleStrategySave}
+                          disabled={!strategyName.trim() || isSavingStrategy}
+                          className="flex-1"
+                        >
+                          {isSavingStrategy ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              저장 중...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              전략 저장
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowStrategyForm(false);
+                            setStrategyName("");
+                            setStrategyDescription("");
+                          }}
+                        >
+                          취소
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </Tabs>

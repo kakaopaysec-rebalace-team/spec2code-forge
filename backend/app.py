@@ -114,6 +114,12 @@ class SimulationRequest(BaseModel):
     strategies: List[Dict[str, Any]]
     simulation_config: Optional[Dict[str, Any]] = None
 
+class StrategyCreateRequest(BaseModel):
+    user_id: str
+    strategy_name: str
+    analysis_result: Dict[str, Any]
+    description: Optional[str] = None
+
 # ================== Dependency Functions ==================
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[str]:
@@ -742,6 +748,128 @@ async def get_strategy_details(strategy_id: str):
     except Exception as e:
         logger.error(f"Get strategy details failed: {e}")
         raise HTTPException(status_code=500, detail="전략 상세 조회 실패")
+
+@app.post("/strategies/create-from-analysis")
+async def create_strategy_from_analysis(request: StrategyCreateRequest):
+    """분석 결과를 기반으로 사용자 전략 생성"""
+    try:
+        from strategy_learner import StrategyLearner
+        from database_manager import get_database_manager
+        import uuid
+        
+        # 분석 결과에서 투자 인사이트 추출
+        analysis = request.analysis_result
+        investment_insights = analysis.get('investment_insights', {})
+        
+        # 전략 데이터 구성
+        strategy_data = {
+            'strategy_id': str(uuid.uuid4()),
+            'strategy_name': request.strategy_name,
+            'strategy_type': 'user_analyzed',
+            'description': request.description or f"'{request.strategy_name}' - AI 분석을 통해 생성된 개인화 전략",
+            'user_id': request.user_id,
+            'is_active': True
+        }
+        
+        # AI 인사이트가 있는 경우 전략 할당 생성
+        if investment_insights.get('ai_enhanced'):
+            # AI 분석 결과를 기반으로 포트폴리오 할당 생성
+            investment_style = investment_insights.get('investment_style', '중간')
+            risk_score = investment_insights.get('risk_score', 5)
+            
+            # 기본 할당 생성 (사용자 성향에 따라)
+            if '보수적' in investment_style or risk_score <= 4:
+                target_allocation = {
+                    "삼성전자": 0.15,
+                    "Apple": 0.12,
+                    "Microsoft": 0.10,
+                    "Johnson & Johnson": 0.10,
+                    "Berkshire Hathaway": 0.08,
+                    "Procter & Gamble": 0.08,
+                    "Coca-Cola": 0.07,
+                    "채권 ETF": 0.15,
+                    "배당주 ETF": 0.15
+                }
+                expected_return = 6.5
+                volatility = 12.0
+                risk_level = "낮음"
+            elif '공격적' in investment_style or risk_score >= 8:
+                target_allocation = {
+                    "Tesla": 0.15,
+                    "Apple": 0.12,
+                    "Microsoft": 0.12,
+                    "NVIDIA": 0.10,
+                    "Amazon": 0.10,
+                    "Meta": 0.08,
+                    "구글": 0.08,
+                    "성장주 ETF": 0.15,
+                    "기술주 ETF": 0.10
+                }
+                expected_return = 12.0
+                volatility = 22.0
+                risk_level = "높음"
+            else:  # 중간
+                target_allocation = {
+                    "Apple": 0.15,
+                    "Microsoft": 0.12,
+                    "삼성전자": 0.10,
+                    "Google": 0.10,
+                    "Amazon": 0.08,
+                    "Tesla": 0.08,
+                    "Johnson & Johnson": 0.07,
+                    "S&P 500 ETF": 0.15,
+                    "국제 ETF": 0.15
+                }
+                expected_return = 9.0
+                volatility = 16.0
+                risk_level = "중간"
+        else:
+            # 기본 균형 전략
+            target_allocation = {
+                "Apple": 0.20,
+                "Microsoft": 0.15,
+                "삼성전자": 0.15,
+                "Google": 0.10,
+                "Amazon": 0.10,
+                "Tesla": 0.10,
+                "S&P 500 ETF": 0.20
+            }
+            expected_return = 8.5
+            volatility = 15.0
+            risk_level = "중간"
+        
+        # 전략 메트릭 계산
+        strategy_data.update({
+            'target_allocation': target_allocation,
+            'expected_return': expected_return,
+            'volatility': volatility,
+            'max_drawdown': volatility * 0.8,  # 대략적인 계산
+            'sharpe_ratio': (expected_return - 3.0) / volatility,  # 무위험수익률 3% 가정
+            'risk_level': risk_level,
+            'tags': [
+                investment_insights.get('investment_style', '균형'),
+                investment_insights.get('investment_goal', '성장'),
+                'AI분석',
+                '사용자생성'
+            ]
+        })
+        
+        # 데이터베이스에 저장
+        db_manager = await get_database_manager()
+        await db_manager.create_rebalancing_strategy(strategy_data)
+        
+        logger.info(f"사용자 전략 생성 완료: {request.strategy_name} (사용자: {request.user_id})")
+        
+        return {
+            "status": "success",
+            "strategy_id": strategy_data['strategy_id'],
+            "strategy_name": request.strategy_name,
+            "message": f"'{request.strategy_name}' 전략이 성공적으로 생성되었습니다."
+        }
+        
+    except Exception as e:
+        logger.error(f"Strategy creation from analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"전략 생성 실패: {str(e)}")
 
 # ================== Strategy Templates ==================
 

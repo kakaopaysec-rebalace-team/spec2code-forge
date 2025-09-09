@@ -318,6 +318,16 @@ export const deleteHolding = async (holdingId: string) => {
   return response.data;
 };
 
+export const createStrategyFromAnalysis = async (userId: string, strategyName: string, analysisResult: any, description?: string) => {
+  const response = await api.post('/strategies/create-from-analysis', {
+    user_id: userId,
+    strategy_name: strategyName,
+    analysis_result: analysisResult,
+    description: description
+  });
+  return response.data;
+};
+
 // Utility functions
 export const generateUserId = (): string => {
   return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
