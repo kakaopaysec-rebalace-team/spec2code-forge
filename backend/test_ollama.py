@@ -12,17 +12,31 @@ def test_ollama_connection():
         print("🔍 Ollama 서비스 연결 테스트...")
         
         # Health check
-        response = requests.get("http://localhost:11434/api/tags", timeout=5)
+        response = requests.get("http://localhost:11434/api/tags", timeout=10)
         if response.status_code == 200:
             models = response.json().get('models', [])
             print(f"✅ Ollama 서비스 정상 - {len(models)}개 모델 설치됨")
             for model in models:
-                print(f"   📦 {model.get('name', 'Unknown')}")
+                name = model.get('name', 'Unknown')
+                size = model.get('size', 0)
+                print(f"   📦 {name} ({size//1000000}MB)")
             return True
         else:
             print(f"❌ Ollama 서비스 응답 오류: {response.status_code}")
+            print(f"   응답 내용: {response.text}")
             return False
             
+    except requests.exceptions.ConnectionError:
+        print("❌ Ollama 서비스에 연결할 수 없습니다")
+        print("   해결책:")
+        print("   1. systemctl start ollama")
+        print("   2. ollama serve")
+        print("   3. 포트 11434 확인: ss -tlnp | grep 11434")
+        return False
+    except requests.exceptions.Timeout:
+        print("❌ Ollama 서비스 응답 시간 초과")
+        print("   서비스가 시작 중이거나 과부하 상태일 수 있습니다")
+        return False
     except Exception as e:
         print(f"❌ Ollama 서비스 연결 실패: {e}")
         return False

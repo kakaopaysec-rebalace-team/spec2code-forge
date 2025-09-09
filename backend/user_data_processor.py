@@ -470,7 +470,7 @@ class UserDataProcessor:
             
             # 간단한 가용성 체크
             import requests
-            health_check = requests.get(f"{ollama_host}/api/tags", timeout=3)
+            health_check = requests.get(f"{ollama_host}/api/tags", timeout=5)
             if health_check.status_code != 200:
                 logger.info("Ollama 서비스 사용 불가")
                 return {}
@@ -497,7 +497,7 @@ class UserDataProcessor:
                     "stream": False,
                     "options": {"temperature": 0.1, "max_tokens": 500}
                 },
-                timeout=30
+                timeout=60
             )
             
             if response.status_code != 200:
