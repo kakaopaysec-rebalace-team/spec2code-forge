@@ -35,7 +35,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds timeout for analysis requests
+  timeout: 120000, // 120 seconds timeout for AI analysis requests
 });
 
 // Request interceptor for logging
@@ -62,6 +62,9 @@ api.interceptors.response.use(
       }
       if (response.data && response.config.url?.includes('holdings')) {
         console.log('API Holdings count:', response.data.holdings?.length || 0, 'Total value:', response.data.total_value);
+      }
+      if (response.data && response.config.url?.includes('user-data/upload')) {
+        console.log('API User Data Upload Response:', response.data);
       }
     }
     return response;
