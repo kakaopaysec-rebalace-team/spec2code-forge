@@ -115,8 +115,8 @@ if [ ! -d "dist" ]; then
 fi
 
 # 프론트엔드 서버 시작
-echo "🌐 프론트엔드 서버 시작: http://localhost:8080"
-nohup npm run preview -- --host 0.0.0.0 --port 8080 > frontend.log 2>&1 &
+echo "🌐 프론트엔드 서버 시작: http://localhost:80"
+nohup npm run preview -- --host 0.0.0.0 --port 80 > frontend.log 2>&1 &
 FRONTEND_PID=$!
 echo "프론트엔드 PID: $FRONTEND_PID"
 
@@ -126,13 +126,13 @@ sleep 10
 
 # 프론트엔드 상태 확인
 echo "🔍 프론트엔드 상태 확인 중..."
-if curl -s --connect-timeout 5 http://localhost:8080 > /dev/null; then
+if curl -s --connect-timeout 5 http://localhost:80 > /dev/null; then
     echo "✅ 프론트엔드 서버 정상 작동 중"
 else
     echo "❌ 프론트엔드 서버 시작 실패"
     echo "📋 진단 정보:"
     echo "   프로세스 상태: $(ps aux | grep node | grep -v grep || echo '없음')"
-    echo "   포트 상태: $(ss -tlnp | grep :8080 || echo '8080 포트 사용 중 아님')"
+    echo "   포트 상태: $(ss -tlnp | grep :80 || echo '80 포트 사용 중 아님')"
     echo "   로그 마지막 10줄:"
     tail -10 frontend.log
     exit 1
@@ -140,7 +140,7 @@ fi
 
 echo "🎉 시스템 시작 완료!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📱 프론트엔드: http://localhost:8080"
+echo "📱 프론트엔드: http://localhost (포트 80)"
 echo "🔧 백엔드 API: http://localhost:8003"
 echo "📖 API 문서: http://localhost:8003/docs"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

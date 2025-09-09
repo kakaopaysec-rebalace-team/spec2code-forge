@@ -49,7 +49,8 @@ npm run build
 
 ## 📱 접속 정보
 
-- **웹 애플리케이션**: http://localhost:8080
+- **웹 애플리케이션**: http://localhost (포트 80 - 표준 HTTP)
+- **웹 애플리케이션 (백업)**: http://localhost:8080
 - **API 서버**: http://localhost:8003
 - **Database AI 전용 API**: http://localhost:8003/database-ai/generate-strategy
 - **API 문서**: http://localhost:8003/docs
