@@ -856,7 +856,20 @@ async def create_strategy_from_analysis(request: StrategyCreateRequest):
         
         # 데이터베이스에 저장
         db_manager = await get_database_manager()
-        await db_manager.create_rebalancing_strategy(strategy_data)
+        await db_manager.save_rebalancing_strategy(
+            strategy_id=strategy_data['strategy_id'],
+            strategy_name=strategy_data['strategy_name'],
+            strategy_type=strategy_data['strategy_type'],
+            description=strategy_data['description'],
+            target_allocation=strategy_data['target_allocation'],
+            expected_return=strategy_data['expected_return'],
+            volatility=strategy_data['volatility'],
+            max_drawdown=strategy_data['max_drawdown'],
+            sharpe_ratio=strategy_data['sharpe_ratio'],
+            risk_level=strategy_data['risk_level'],
+            tags=strategy_data['tags'],
+            user_id=strategy_data['user_id']
+        )
         
         logger.info(f"사용자 전략 생성 완료: {request.strategy_name} (사용자: {request.user_id})")
         
