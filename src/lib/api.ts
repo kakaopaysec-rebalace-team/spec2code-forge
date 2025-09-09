@@ -254,8 +254,7 @@ export const analyzeUserData = async (userData: UserData) => {
 
 // User data upload functions
 export const uploadUserText = async (userId: string, content: string, dataType: 'text' | 'url') => {
-  const response = await api.post('/user-data/upload', {
-    user_id: userId,
+  const response = await api.post(`/user-data/upload?user_id=${userId}`, {
     data_type: dataType,
     content: content
   });
