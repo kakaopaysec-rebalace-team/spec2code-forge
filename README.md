@@ -49,11 +49,27 @@ npm run build
 
 ## 📱 접속 정보
 
-- **웹 애플리케이션**: http://localhost (포트 80 - 표준 HTTP)
+### 🌐 동적 호스트 감지 지원
+
+시스템이 자동으로 접속 환경을 감지하여 적절한 API URL을 사용합니다:
+
+- **localhost 접속시**: API가 `http://localhost:8003` 사용
+- **서버 IP 접속시**: API가 `http://서버IP:8003` 자동 사용
+- **ngrok 접속시**: 각각의 ngrok URL 자동 매칭
+
+### 📋 접속 URL들
+
+- **웹 애플리케이션**: http://localhost (포트 80 - 표준 HTTP)  
 - **웹 애플리케이션 (백업)**: http://localhost:8080
-- **API 서버**: http://localhost:8003
-- **Database AI 전용 API**: http://localhost:8003/database-ai/generate-strategy
-- **API 문서**: http://localhost:8003/docs
+- **API 서버**: 동적 감지 (localhost:8003 또는 서버IP:8003)
+- **Database AI 전용 API**: [동적]/database-ai/generate-strategy
+- **API 문서**: [동적]/docs
+
+### 🧪 동적 감지 테스트
+
+```bash
+./test-dynamic-host.sh
+```
 
 ### 🌐 ngrok 터널링 지원
 

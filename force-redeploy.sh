@@ -188,9 +188,10 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🎉 강제 재배포 완료!"
 echo ""
 echo "🌐 접속 정보:"
-echo "   • Frontend: http://144.172.91.13/"
-echo "   • API 문서: http://144.172.91.13/docs"
-echo "   • 헬스 체크: http://144.172.91.13/health"
+SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
+echo "   • Frontend: http://$SERVER_IP/"
+echo "   • API 문서: http://$SERVER_IP:8003/docs"
+echo "   • 헬스 체크: http://$SERVER_IP:8003/health"
 echo ""
 echo "🛠️  관리 명령어:"
 echo "   • 실시간 로그: docker logs -f ${APP_NAME}"

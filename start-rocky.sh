@@ -5,15 +5,15 @@ echo "🚀 Rocky Linux AI 리밸런싱 시스템 시작 중..."
 # 환경 설정 자동화
 echo "🔧 Rocky Linux 환경 설정 확인 중..."
 SERVER_IP=$(hostname -I | awk '{print $1}')
-if [ ! -f ".env" ] || ! grep -q "$SERVER_IP" .env 2>/dev/null; then
-    echo "📝 서버 IP($SERVER_IP)로 환경 설정 업데이트 중..."
-    cat > .env << EOF
-# Frontend API Configuration for Rocky Linux  
-VITE_API_URL=http://$SERVER_IP:8003
+echo "📝 동적 API URL 감지 설정 중 (현재 서버 IP: $SERVER_IP)..."
+cat > .env << EOF
+# Frontend API Configuration - Dynamic Host Detection Enabled
+# API URL will be automatically detected based on browser hostname
+# VITE_API_URL=http://localhost:8003  # 강제 설정하려면 주석 해제
 VITE_ENV=production
+VITE_SERVER_IP=$SERVER_IP
 EOF
-    echo "✅ .env 파일 업데이트 완료"
-fi
+echo "✅ .env 파일 업데이트 완료 (동적 감지 모드)"
 
 # 현재 디렉토리 확인
 if [ ! -f "package.json" ]; then

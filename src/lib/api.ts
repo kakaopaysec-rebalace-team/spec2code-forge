@@ -1,7 +1,28 @@
 import axios from 'axios';
 
-// API configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// API configuration with dynamic host detection
+const getApiBaseUrl = () => {
+  // 환경변수가 있으면 사용
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // 브라우저에서 현재 호스트 감지
+  if (typeof window !== 'undefined') {
+    const currentHost = window.location.hostname;
+    // localhost나 127.0.0.1인 경우 8003 포트 사용
+    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+      return `http://localhost:8003`;
+    }
+    // 다른 호스트인 경우 해당 호스트의 8003 포트 사용
+    return `http://${currentHost}:8003`;
+  }
+  
+  // 기본값
+  return 'http://localhost:8003';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Only log in development
 if (import.meta.env.DEV) {
