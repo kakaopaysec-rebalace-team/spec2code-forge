@@ -1,0 +1,50 @@
+#!/bin/bash
+
+echo "📱 모바일 반응형 웹 테스트"
+echo "========================="
+
+echo "🔧 반응형 디자인 구현 사항:"
+echo "✅ 헤더 - 모바일에서 세로 스택 레이아웃"
+echo "✅ 히어로 섹션 - 텍스트 크기 및 패딩 반응형"
+echo "✅ 버튼 - 모바일에서 전체 너비"
+echo "✅ 기능 카드 - 1열 → 2열 → 3열 그리드"
+echo "✅ 뷰포트 메타태그 - 줌 비활성화"
+echo "✅ 터치 최적화 CSS - 44px 최소 터치 영역"
+
+echo ""
+echo "📋 모바일 브레이크포인트:"
+echo "   • sm: 640px+ (태블릿)"
+echo "   • md: 768px+ (작은 데스크탑)"
+echo "   • lg: 1024px+ (대형 화면)"
+
+echo ""
+echo "🌐 테스트 방법:"
+echo "1. 데스크톱 브라우저:"
+echo "   - F12 → Device Toolbar (Ctrl+Shift+M)"
+echo "   - iPhone SE (375px), iPhone 12 Pro (390px), iPad (768px) 테스트"
+
+echo ""
+echo "2. 실제 모바일 기기:"
+echo "   - 로컬: http://localhost"
+echo "   - 서버: http://$(hostname -I | awk '{print $1}' 2>/dev/null || echo 'server-ip')"
+echo "   - ngrok: https://your-ngrok-url.app"
+
+echo ""
+echo "🔍 확인 사항:"
+echo "   ✓ 가로 스크롤 없음"
+echo "   ✓ 텍스트 가독성"
+echo "   ✓ 터치 영역 크기 (최소 44px)"
+echo "   ✓ 버튼과 링크 터치 용이성"
+echo "   ✓ 네비게이션 사용 편의성"
+
+echo ""
+echo "🎨 주요 반응형 클래스:"
+echo "   • flex-col sm:flex-row - 모바일 세로, 태블릿+ 가로"
+echo "   • text-lg sm:text-xl lg:text-2xl - 화면별 텍스트 크기"
+echo "   • grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 - 반응형 그리드"
+echo "   • px-4 sm:px-6 lg:px-8 - 화면별 패딩"
+echo "   • gap-4 sm:gap-6 lg:gap-8 - 화면별 간격"
+
+echo ""
+echo "📱 모바일 최적화 완료!"
+echo "브라우저에서 개발자 도구를 사용하여 다양한 기기 크기로 테스트해보세요."

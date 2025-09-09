@@ -1,0 +1,115 @@
+/* 모바일 최적화 CSS */
+
+/* 터치 대상 크기 최적화 */
+button, .clickable {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* 터치 스크롤 개선 */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 포커스 상태 개선 (모바일) */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* 모바일 텍스트 선택 비활성화 (UI 요소) */
+button,
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* iOS 스타일링 제거 */
+input,
+textarea,
+button {
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+/* 탭 하이라이트 색상 제거 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 줌 비활성화 (입력 필드) */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+textarea,
+select {
+  font-size: 16px; /* iOS에서 줌 방지를 위한 최소 크기 */
+}
+
+/* 스크롤바 숨기기 (모바일) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 모바일 카드 호버 효과 제거 */
+@media (hover: none) {
+  .hover\\:scale-105 {
+    transform: none !important;
+  }
+  
+  .hover\\:shadow-xl {
+    box-shadow: var(--tw-shadow) !important;
+  }
+}
+
+/* Safe Area 지원 */
+@supports (padding: max(0px)) {
+  .safe-area-inset-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* 모바일 그리드 개선 */
+@media (max-width: 640px) {
+  .mobile-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* 터치 피드백 */
+.touch-feedback:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* 모바일 테이블 반응형 */
+@media (max-width: 768px) {
+  .mobile-table {
+    font-size: 0.875rem;
+  }
+  
+  .mobile-table th,
+  .mobile-table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
