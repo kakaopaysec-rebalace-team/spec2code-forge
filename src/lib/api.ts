@@ -252,6 +252,34 @@ export const analyzeUserData = async (userData: UserData) => {
   return response.data;
 };
 
+// User data upload functions
+export const uploadUserText = async (userId: string, content: string, dataType: 'text' | 'url') => {
+  const response = await api.post('/user-data/upload', {
+    user_id: userId,
+    data_type: dataType,
+    content: content
+  });
+  return response.data;
+};
+
+export const uploadUserFile = async (userId: string, file: File) => {
+  const formData = new FormData();
+  formData.append('user_id', userId);
+  formData.append('file', file);
+  
+  const response = await api.post('/user-data/upload-file', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const getUserData = async (userId: string) => {
+  const response = await api.get(`/users/${userId}/data`);
+  return response.data;
+};
+
 export const getStrategyTemplates = async () => {
   const response = await api.get('/strategies/templates');
   return response.data;

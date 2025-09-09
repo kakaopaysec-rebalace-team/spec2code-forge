@@ -3,8 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, Building2, PieChart, Zap } from "lucide-react";
-import { getUserHoldings, getAllStrategies } from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Loader2, TrendingUp, Building2, PieChart, Zap, BookOpen, Upload, Link, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { getUserHoldings, getAllStrategies, uploadUserText, uploadUserFile } from "@/lib/api";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -12,6 +16,13 @@ const ProfileSetup = () => {
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalValue, setTotalValue] = useState(0);
+
+  // Strategy learning states
+  const [urlInput, setUrlInput] = useState("");
+  const [memoInput, setMemoInput] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ type: string; message: string } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,6 +66,66 @@ const ProfileSetup = () => {
     ));
     
     navigate('/results');
+  };
+
+  // Strategy learning handlers
+  const handleUrlUpload = async () => {
+    if (!urlInput.trim()) return;
+    
+    setIsUploading(true);
+    try {
+      await uploadUserText('mock-user-001', urlInput, 'url');
+      setUploadStatus({ type: 'success', message: 'URL이 성공적으로 분석되었습니다!' });
+      setUrlInput("");
+    } catch (error) {
+      setUploadStatus({ type: 'error', message: 'URL 분석에 실패했습니다.' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleMemoUpload = async () => {
+    if (!memoInput.trim()) return;
+    
+    setIsUploading(true);
+    try {
+      await uploadUserText('mock-user-001', memoInput, 'text');
+      setUploadStatus({ type: 'success', message: '투자 메모가 성공적으로 분석되었습니다!' });
+      setMemoInput("");
+    } catch (error) {
+      setUploadStatus({ type: 'error', message: '메모 분석에 실패했습니다.' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    
+    setIsUploading(true);
+    try {
+      await uploadUserFile('mock-user-001', selectedFile);
+      setUploadStatus({ type: 'success', message: `파일 "${selectedFile.name}"이 성공적으로 분석되었습니다!` });
+      setSelectedFile(null);
+    } catch (error) {
+      setUploadStatus({ type: 'error', message: '파일 분석에 실패했습니다.' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const allowedTypes = ['.pdf', '.txt', '.md'];
+      const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      if (allowedTypes.includes(fileExt)) {
+        setSelectedFile(file);
+        setUploadStatus(null);
+      } else {
+        setUploadStatus({ type: 'error', message: '지원하지 않는 파일 형식입니다. PDF, TXT, MD 파일만 업로드 가능합니다.' });
+      }
+    }
   };
 
   if (loading) {
@@ -235,6 +306,150 @@ const ProfileSetup = () => {
                   총 {strategies.length}개 전략 사용 가능 • 실시간 DB 조회
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* 맞춤 전략 학습 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                맞춤 전략 학습
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                투자 문서, 웹 URL, 또는 직접 입력한 투자 철학을 분석하여 나만의 전략을 생성하세요
+              </p>
+            </CardHeader>
+            <CardContent className="mobile-padding">
+              <Tabs defaultValue="url" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="url" className="flex items-center gap-2">
+                    <Link className="h-4 w-4" />
+                    <span className="hidden sm:inline">웹 URL</span>
+                    <span className="sm:hidden">URL</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="file" className="flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden sm:inline">파일 업로드</span>
+                    <span className="sm:hidden">파일</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="memo" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden sm:inline">직접 입력</span>
+                    <span className="sm:hidden">메모</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="url" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="url-input">투자 관련 웹페이지 URL</Label>
+                    <Input
+                      id="url-input"
+                      type="url"
+                      placeholder="https://example.com/investment-strategy"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      투자 전략, 포트폴리오 분석 글, 전문가 의견 등의 웹페이지를 분석합니다
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleUrlUpload} 
+                    disabled={!urlInput.trim() || isUploading}
+                    className="w-full sm:w-auto"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-2 h-4 w-4" />
+                    )}
+                    URL 분석하기
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="file" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="file-input">투자 문서 업로드</Label>
+                    <Input
+                      id="file-input"
+                      type="file"
+                      accept=".pdf,.txt,.md"
+                      onChange={handleFileChange}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      PDF, TXT, MD 파일 지원 (투자 보고서, 전략 문서, 메모 등)
+                    </p>
+                    {selectedFile && (
+                      <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                        <FileText className="h-4 w-4" />
+                        <span className="text-sm">{selectedFile.name}</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={handleFileUpload} 
+                    disabled={!selectedFile || isUploading}
+                    className="w-full sm:w-auto"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    파일 분석하기
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="memo" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="memo-input">투자 철학 & 전략 메모</Label>
+                    <Textarea
+                      id="memo-input"
+                      placeholder="나만의 투자 철학과 전략을 자유롭게 작성해주세요...
+                      
+예시:
+- 장기 가치투자를 선호합니다
+- 배당주 중심의 안정적인 수익을 추구합니다  
+- ESG 투자에 관심이 있습니다
+- 기술주 비중을 늘리고 싶습니다"
+                      className="min-h-[120px]"
+                      value={memoInput}
+                      onChange={(e) => setMemoInput(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      투자 선호도, 위험 성향, 관심 섹터 등을 구체적으로 작성해주세요
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleMemoUpload} 
+                    disabled={!memoInput.trim() || isUploading}
+                    className="w-full sm:w-auto"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="mr-2 h-4 w-4" />
+                    )}
+                    메모 분석하기
+                  </Button>
+                </TabsContent>
+
+                {uploadStatus && (
+                  <div className={`mt-4 p-3 rounded-md flex items-center gap-2 ${
+                    uploadStatus.type === 'success' 
+                      ? 'bg-green-50 text-green-800 border border-green-200' 
+                      : 'bg-red-50 text-red-800 border border-red-200'
+                  }`}>
+                    {uploadStatus.type === 'success' ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4" />
+                    )}
+                    <span className="text-sm">{uploadStatus.message}</span>
+                  </div>
+                )}
+              </Tabs>
             </CardContent>
           </Card>
 
