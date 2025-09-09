@@ -468,14 +468,19 @@ class UserDataProcessor:
             # Ollama를 사용한 AI 분석
             ollama_host = "http://localhost:11434"
             
-            # 간단한 가용성 체크
-            import requests
-            health_check = requests.get(f"{ollama_host}/api/tags", timeout=5)
-            if health_check.status_code != 200:
-                logger.info("Ollama 서비스 사용 불가")
-                return {}
+            # 간단한 가용성 체크 (비동기)
+            import httpx
+            async with httpx.AsyncClient() as client:
+                try:
+                    health_check = await client.get(f"{ollama_host}/api/tags", timeout=5)
+                    if health_check.status_code != 200:
+                        logger.info("Ollama 서비스 사용 불가")
+                        return {}
+                except Exception as e:
+                    logger.info(f"Ollama 서비스 연결 실패: {e}")
+                    return {}
                 
-            prompt = f"""다음은 사용자가 제공한 투자 관련 문서/텍스트입니다. 이를 분석해서 투자 성향, 목표, 선호하는 투자 전략을 파악해주세요.
+                prompt = f"""다음은 사용자가 제공한 투자 관련 문서/텍스트입니다. 이를 분석해서 투자 성향, 목표, 선호하는 투자 전략을 파악해주세요.
 
 텍스트: {content[:2000]}  # 처음 2000자만 사용
 
@@ -489,56 +494,56 @@ class UserDataProcessor:
 
 간단하고 명확하게 한국어로 답해주세요."""
 
-            response = requests.post(
-                f"{ollama_host}/api/generate",
-                json={
-                    "model": "llama3.1:8b",
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": 0.1, "max_tokens": 500}
-                },
-                timeout=60
-            )
-            
-            if response.status_code != 200:
-                return {}
+                response = await client.post(
+                    f"{ollama_host}/api/generate",
+                    json={
+                        "model": "llama3.1:8b",
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {"temperature": 0.1, "max_tokens": 500}
+                    },
+                    timeout=90  # 더 넉넉한 타임아웃
+                )
                 
-            result = response.json()
-            ai_response = result.get("response", "")
-            
-            if not ai_response:
-                return {}
-            
-            # AI 응답 파싱
-            enhanced_insights = {}
-            lines = ai_response.split('\n')
-            
-            for line in lines:
-                line = line.strip()
-                if "투자 성향" in line and ":" in line:
-                    enhanced_insights['investment_style'] = line.split(":")[-1].strip()
-                elif "투자 목표" in line and ":" in line:
-                    enhanced_insights['investment_goal'] = line.split(":")[-1].strip()
-                elif "투자 기간" in line and ":" in line:
-                    enhanced_insights['investment_period'] = line.split(":")[-1].strip()
-                elif "선호 자산" in line and ":" in line:
-                    enhanced_insights['preferred_assets'] = line.split(":")[-1].strip()
-                elif "리스크 선호도" in line and ":" in line:
-                    risk_text = line.split(":")[-1].strip()
-                    # 숫자 추출
-                    import re
-                    risk_scores = re.findall(r'\d+', risk_text)
-                    if risk_scores:
-                        enhanced_insights['risk_score'] = int(risk_scores[0])
-                elif "핵심 전략" in line and ":" in line:
-                    enhanced_insights['key_strategy'] = line.split(":")[-1].strip()
-            
-            # AI 분석 완료 플래그
-            enhanced_insights['ai_enhanced'] = True
-            enhanced_insights['ai_model'] = 'ollama_llama3.1'
-            
-            logger.info("AI 강화 투자 인사이트 추출 완료")
-            return enhanced_insights
+                if response.status_code != 200:
+                    return {}
+                    
+                result = response.json()
+                ai_response = result.get("response", "")
+                
+                if not ai_response:
+                    return {}
+                
+                # AI 응답 파싱
+                enhanced_insights = {}
+                lines = ai_response.split('\n')
+                
+                for line in lines:
+                    line = line.strip()
+                    if "투자 성향" in line and ":" in line:
+                        enhanced_insights['investment_style'] = line.split(":")[-1].strip()
+                    elif "투자 목표" in line and ":" in line:
+                        enhanced_insights['investment_goal'] = line.split(":")[-1].strip()
+                    elif "투자 기간" in line and ":" in line:
+                        enhanced_insights['investment_period'] = line.split(":")[-1].strip()
+                    elif "선호 자산" in line and ":" in line:
+                        enhanced_insights['preferred_assets'] = line.split(":")[-1].strip()
+                    elif "리스크 선호도" in line and ":" in line:
+                        risk_text = line.split(":")[-1].strip()
+                        # 숫자 추출
+                        import re
+                        risk_scores = re.findall(r'\d+', risk_text)
+                        if risk_scores:
+                            enhanced_insights['risk_score'] = int(risk_scores[0])
+                    elif "핵심 전략" in line and ":" in line:
+                        enhanced_insights['key_strategy'] = line.split(":")[-1].strip()
+                
+                # AI 분석 완료 플래그
+                enhanced_insights['ai_enhanced'] = True
+                enhanced_insights['ai_model'] = 'ollama_llama3.1'
+                
+                logger.info("AI 강화 투자 인사이트 추출 완료")
+                return enhanced_insights
             
         except Exception as e:
             logger.error(f"AI 강화 분석 실패: {e}")
