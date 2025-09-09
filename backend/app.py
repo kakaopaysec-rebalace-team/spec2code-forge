@@ -872,6 +872,14 @@ async def create_strategy_from_analysis(request: StrategyCreateRequest):
         )
         
         logger.info(f"사용자 전략 생성 완료: {request.strategy_name} (사용자: {request.user_id})")
+        logger.info(f"저장된 전략 ID: {strategy_data['strategy_id']}")
+        
+        # 저장 확인을 위한 즉시 조회
+        saved_strategy = await db_manager.get_strategy_by_id(strategy_data['strategy_id'])
+        if saved_strategy:
+            logger.info(f"저장 확인 성공: {saved_strategy['strategy_name']}")
+        else:
+            logger.error(f"저장 확인 실패: 전략을 찾을 수 없음 - {strategy_data['strategy_id']}")
         
         return {
             "status": "success",
