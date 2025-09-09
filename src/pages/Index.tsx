@@ -132,7 +132,7 @@ const Index = () => {
               className="text-lg px-8 py-8 min-w-[280px] shadow-md hover:shadow-lg border-2 transform hover:scale-105 transition-all duration-200 bg-background/50 backdrop-blur-sm"
               onClick={() => navigate('/profile')}
             >
-              리밸런싱 전략 생성하기
+              리밸런싱 전략 생성
             </Button>
             <Button 
               variant="outline"
