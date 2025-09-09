@@ -55,6 +55,21 @@ npm run build
 - **Database AI 전용 API**: http://localhost:8003/database-ai/generate-strategy
 - **API 문서**: http://localhost:8003/docs
 
+### 🌐 ngrok 터널링 지원
+
+외부 접속을 위한 ngrok 터널링을 지원합니다:
+
+```bash
+# 1. 로컬 서버 시작
+./start-rocky.sh
+
+# 2. ngrok 터널링 (별도 터미널)
+ngrok http 80
+
+# 3. ngrok 테스트
+./test-ngrok.sh https://your-ngrok-url.ngrok-free.app
+```
+
 ## 🎯 사용 예시
 
 ### Database AI API 직접 호출
