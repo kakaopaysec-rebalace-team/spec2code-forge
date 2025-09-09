@@ -24,3 +24,5 @@ scipy>=1.11.0
 matplotlib>=3.7.0
 plotly>=5.17.0
 ta>=0.10.2
+# Optional: Free LLM integration (install manually if needed)
+# ollama>=0.3.0

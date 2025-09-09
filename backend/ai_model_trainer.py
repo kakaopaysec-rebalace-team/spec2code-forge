@@ -27,6 +27,12 @@ except ImportError:
     anthropic = None
     Anthropic = None
 
+# For Ollama integration
+try:
+    import ollama
+except ImportError:
+    ollama = None
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 
@@ -42,11 +48,18 @@ class AIModelTrainer:
         self.google_search_api_key = os.getenv("GOOGLE_SEARCH_API_KEY")
         self.google_search_engine_id = os.getenv("GOOGLE_SEARCH_ENGINE_ID")
         
+        # Ollama settings
+        self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")  # Default free model
+        
         if self.anthropic_api_key and Anthropic:
             self.client = Anthropic(api_key=self.anthropic_api_key)
         else:
             self.client = None
             logger.warning("Anthropic API key not found or anthropic package not installed")
+            
+        # Check Ollama availability
+        self.ollama_available = self._check_ollama_availability()
         
         # Initialize knowledge base
         self.knowledge_base = {
@@ -652,10 +665,21 @@ class AIModelTrainer:
             except Exception as db_ai_error:
                 logger.warning(f"Database AI 실패, 기존 방식 사용: {db_ai_error}")
                 
-                # 기존 방식 폴백
-                if self.client:
-                    strategy = await self._generate_advanced_strategy_with_claude(comprehensive_context)
-                else:
+                # 기존 방식 폴백 (무료 LLM 우선, Claude 보조)
+                try:
+                    if self.ollama_available:
+                        logger.info("🤖 Ollama 무료 LLM으로 전략 생성 중...")
+                        strategy = await self._generate_strategy_with_ollama(comprehensive_context)
+                    elif self.client:
+                        logger.info("🧠 Claude API로 전략 생성 중...")
+                        strategy = await self._generate_advanced_strategy_with_claude(comprehensive_context)
+                    else:
+                        logger.info("📊 규칙 기반 전략 생성 중...")
+                        strategy = await self._generate_enhanced_rule_based_strategy(
+                            processed_data, user_profile, user_insights
+                        )
+                except Exception as ai_error:
+                    logger.warning(f"AI 전략 생성 실패, 규칙 기반으로 폴백: {ai_error}")
                     strategy = await self._generate_enhanced_rule_based_strategy(
                         processed_data, user_profile, user_insights
                     )
@@ -807,6 +831,152 @@ class AIModelTrainer:
         except Exception as e:
             logger.error(f"Error with advanced Claude API: {str(e)}")
             raise
+            
+    def _check_ollama_availability(self) -> bool:
+        """Ollama 서비스 가용성 체크"""
+        try:
+            if not ollama:
+                logger.info("Ollama package not installed")
+                return False
+                
+            # Simple health check
+            import requests
+            response = requests.get(f"{self.ollama_host}/api/tags", timeout=5)
+            if response.status_code == 200:
+                logger.info("Ollama service is available")
+                return True
+            else:
+                logger.warning(f"Ollama service returned status {response.status_code}")
+                return False
+        except Exception as e:
+            logger.info(f"Ollama not available: {str(e)}")
+            return False
+    
+    async def _generate_strategy_with_ollama(self, context: str) -> Dict[str, Any]:
+        """무료 Ollama LLM을 사용한 전략 생성"""
+        try:
+            if not self.ollama_available:
+                raise Exception("Ollama is not available")
+                
+            prompt = f"""당신은 전문 투자 분석가입니다. 다음 정보를 바탕으로 실용적인 포트폴리오 리밸런싱 전략을 제안해주세요.
+
+{context}
+
+다음 형식으로 응답해주세요:
+
+**추천 포트폴리오 비중**
+- 삼성전자: 25%
+- Apple: 20%  
+- NVIDIA: 15%
+- 기타...
+
+**주요 액션**
+- 매수: [종목명] - [이유]
+- 매도: [종목명] - [이유]
+
+**전략 근거**
+- 현재 시장 상황 분석
+- 사용자 프로필에 맞는 이유
+- 리스크 관리 방안
+
+**성과 예측**
+- 예상 연수익률: 10-15%
+- 예상 변동성: 15-20%
+- 최대 손실: 10-15%
+
+한국어로 구체적이고 실행 가능한 조언을 해주세요."""
+
+            # Call Ollama API
+            import requests
+            response = requests.post(
+                f"{self.ollama_host}/api/generate",
+                json={
+                    "model": self.ollama_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.3,
+                        "top_p": 0.9,
+                        "max_tokens": 2000
+                    }
+                },
+                timeout=60
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"Ollama API error: {response.status_code}")
+                
+            result = response.json()
+            ai_response = result.get("response", "")
+            
+            if not ai_response:
+                raise Exception("Empty response from Ollama")
+                
+            # Parse the response
+            strategy = self._parse_ollama_response(ai_response)
+            
+            logger.info("Successfully generated strategy with Ollama")
+            return strategy
+            
+        except Exception as e:
+            logger.error(f"Error with Ollama API: {str(e)}")
+            # Fallback to rule-based strategy
+            raise
+    
+    def _parse_ollama_response(self, ai_response: str) -> Dict[str, Any]:
+        """Ollama 응답 파싱"""
+        try:
+            # Extract portfolio allocation
+            portfolio_allocation = {}
+            lines = ai_response.split('\n')
+            
+            in_portfolio_section = False
+            for line in lines:
+                line = line.strip()
+                
+                if "추천 포트폴리오" in line or "포트폴리오 비중" in line:
+                    in_portfolio_section = True
+                    continue
+                elif "주요 액션" in line or "전략 근거" in line:
+                    in_portfolio_section = False
+                    continue
+                    
+                if in_portfolio_section and line and ":" in line:
+                    parts = line.replace("-", "").strip().split(":")
+                    if len(parts) == 2:
+                        stock = parts[0].strip()
+                        weight_str = parts[1].strip().replace("%", "").replace(" ", "")
+                        try:
+                            weight = float(weight_str) / 100.0
+                            if 0 <= weight <= 1:
+                                portfolio_allocation[stock] = weight
+                        except ValueError:
+                            continue
+            
+            # Extract actions
+            actions = self._extract_actions_from_response(ai_response)
+            
+            # Extract rationale
+            rationale = self._extract_rationale(ai_response)
+            
+            # Extract performance predictions
+            performance = self._extract_performance_predictions(ai_response)
+            
+            return {
+                "portfolio_allocation": portfolio_allocation,
+                "actions": actions,
+                "rationale": rationale,
+                "expected_return": performance.get("return", "10-15%"),
+                "expected_volatility": performance.get("volatility", "15-20%"),
+                "max_drawdown": performance.get("mdd", "10-15%"),
+                "risk_level": self._determine_risk_level(portfolio_allocation),
+                "generated_at": datetime.now().isoformat(),
+                "strategy_type": "ollama_free"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error parsing Ollama response: {str(e)}")
+            return self._create_fallback_parsed_response(ai_response)
 
     def _parse_advanced_ai_response(self, ai_response: str) -> Dict[str, Any]:
         """고도화된 AI 응답 파싱"""

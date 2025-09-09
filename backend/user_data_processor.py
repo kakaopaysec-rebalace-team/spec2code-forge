@@ -74,8 +74,17 @@ class UserDataProcessor:
             else:
                 raise ValueError(f"지원하지 않는 데이터 타입: {data_type}")
             
-            # 투자 관련 정보 추출
+            # 투자 관련 정보 추출 (AI 강화)
             investment_insights = await self._extract_investment_insights(result['content'])
+            
+            # 무료 LLM으로 더 지능적인 분석 시도
+            try:
+                enhanced_insights = await self._enhance_insights_with_ai(result['content'], investment_insights)
+                if enhanced_insights:
+                    investment_insights.update(enhanced_insights)
+            except Exception as e:
+                logger.info(f"AI 강화 분석 건너뜀: {e}")
+                
             result['investment_insights'] = investment_insights
             
             # 메타데이터 생성
@@ -453,6 +462,88 @@ class UserDataProcessor:
                 'user_id': user_id
             }
     
+    async def _enhance_insights_with_ai(self, content: str, basic_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """무료 LLM을 사용한 투자 인사이트 강화"""
+        try:
+            # Ollama를 사용한 AI 분석
+            ollama_host = "http://localhost:11434"
+            
+            # 간단한 가용성 체크
+            import requests
+            health_check = requests.get(f"{ollama_host}/api/tags", timeout=3)
+            if health_check.status_code != 200:
+                logger.info("Ollama 서비스 사용 불가")
+                return {}
+                
+            prompt = f"""다음은 사용자가 제공한 투자 관련 문서/텍스트입니다. 이를 분석해서 투자 성향, 목표, 선호하는 투자 전략을 파악해주세요.
+
+텍스트: {content[:2000]}  # 처음 2000자만 사용
+
+다음 형식으로 분석해주세요:
+**투자 성향**: 보수적/중간/공격적
+**투자 목표**: 은퇴준비/자산증대/수익창출/성장추구
+**투자 기간**: 단기/중기/장기
+**선호 자산**: 주식, 채권, 부동산 등
+**리스크 선호도**: 1-10 점수
+**핵심 전략**: 2-3줄 요약
+
+간단하고 명확하게 한국어로 답해주세요."""
+
+            response = requests.post(
+                f"{ollama_host}/api/generate",
+                json={
+                    "model": "llama3.1:8b",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.1, "max_tokens": 500}
+                },
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                return {}
+                
+            result = response.json()
+            ai_response = result.get("response", "")
+            
+            if not ai_response:
+                return {}
+            
+            # AI 응답 파싱
+            enhanced_insights = {}
+            lines = ai_response.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if "투자 성향" in line and ":" in line:
+                    enhanced_insights['investment_style'] = line.split(":")[-1].strip()
+                elif "투자 목표" in line and ":" in line:
+                    enhanced_insights['investment_goal'] = line.split(":")[-1].strip()
+                elif "투자 기간" in line and ":" in line:
+                    enhanced_insights['investment_period'] = line.split(":")[-1].strip()
+                elif "선호 자산" in line and ":" in line:
+                    enhanced_insights['preferred_assets'] = line.split(":")[-1].strip()
+                elif "리스크 선호도" in line and ":" in line:
+                    risk_text = line.split(":")[-1].strip()
+                    # 숫자 추출
+                    import re
+                    risk_scores = re.findall(r'\d+', risk_text)
+                    if risk_scores:
+                        enhanced_insights['risk_score'] = int(risk_scores[0])
+                elif "핵심 전략" in line and ":" in line:
+                    enhanced_insights['key_strategy'] = line.split(":")[-1].strip()
+            
+            # AI 분석 완료 플래그
+            enhanced_insights['ai_enhanced'] = True
+            enhanced_insights['ai_model'] = 'ollama_llama3.1'
+            
+            logger.info("AI 강화 투자 인사이트 추출 완료")
+            return enhanced_insights
+            
+        except Exception as e:
+            logger.error(f"AI 강화 분석 실패: {e}")
+            return {}
+
     async def _generate_data_recommendations(self, insights: Dict[str, Any], 
                                            summary: Dict[str, Any]) -> List[str]:
         """데이터 분석 기반 추천사항 생성"""
