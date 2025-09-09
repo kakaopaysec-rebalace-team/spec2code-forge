@@ -177,40 +177,40 @@ const Results = () => {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="space-y-8">
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">${totalValue.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">포트폴리오 가치</div>
+                <div className="text-xl sm:text-2xl font-bold text-green-600">${totalValue.toLocaleString()}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">포트폴리오 가치</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{holdings.length}</div>
-                <div className="text-sm text-muted-foreground">보유 종목</div>
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">{holdings.length}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">보유 종목</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">{selectedStrategy?.expected_return?.toFixed(1) || '18.7'}%</div>
-                <div className="text-sm text-muted-foreground">예상 연간 수익률</div>
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">{selectedStrategy?.expected_return?.toFixed(1) || '18.7'}%</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">예상 연간 수익률</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">{trades.length}</div>
-                <div className="text-sm text-muted-foreground">추천 거래</div>
+                <div className="text-xl sm:text-2xl font-bold text-orange-600">{trades.length}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">추천 거래</div>
               </CardContent>
             </Card>
           </div>
 
           {/* Portfolio Comparison */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             <Card>
               <CardHeader>
                 <CardTitle>현재 포트폴리오 (실제 DB 데이터)</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="mobile-padding">
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -218,8 +218,8 @@ const Results = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name.split('(')[0]} ${value.toFixed(1)}%`}
-                      outerRadius={100}
+                      label={({ name, value }) => value > 8 ? `${name.split('(')[0].substring(0, 6)}.. ${value.toFixed(0)}%` : ''}
+                      outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -237,7 +237,7 @@ const Results = () => {
               <CardHeader>
                 <CardTitle>추천 포트폴리오 ({selectedStrategy?.strategy_name || 'AI 전략'})</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="mobile-padding">
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -245,8 +245,8 @@ const Results = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name} ${value.toFixed(1)}%`}
-                      outerRadius={100}
+                      label={({ name, value }) => value > 8 ? `${name.substring(0, 6)}.. ${value.toFixed(0)}%` : ''}
+                      outerRadius={80}
                       fill="#82ca9d"
                       dataKey="value"
                     >
@@ -266,8 +266,8 @@ const Results = () => {
             <CardHeader>
               <CardTitle>예상 성과 비교</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
+            <CardContent className="mobile-padding">
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -287,19 +287,19 @@ const Results = () => {
             <CardHeader>
               <CardTitle>핵심 지표 비교</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
+            <CardContent className="mobile-padding">
+              <div className="space-y-4 mobile-grid-gap">
                 {metrics.map((metric, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="font-medium">{metric.label}</div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
+                  <div key={index} className="p-4 border rounded-lg">
+                    <div className="font-medium mb-3 text-center sm:text-left">{metric.label}</div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="text-center sm:text-right flex-1">
                         <div className="text-sm text-muted-foreground">현재</div>
-                        <div className="font-semibold">{metric.current}</div>
+                        <div className="font-semibold text-lg">{metric.current}</div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-center sm:text-right flex-1">
                         <div className="text-sm text-muted-foreground">추천</div>
-                        <div className={`font-semibold flex items-center gap-1 ${metric.better ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`font-semibold text-lg flex items-center justify-center sm:justify-end gap-1 ${metric.better ? 'text-green-600' : 'text-red-600'}`}>
                           {metric.recommended}
                           {metric.better ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                         </div>
@@ -317,25 +317,27 @@ const Results = () => {
               <CardHeader>
                 <CardTitle>추천 거래 내역 (실제 데이터 기반)</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="mobile-padding">
+                <div className="space-y-4 mobile-grid-gap">
                   {trades.map((trade, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          trade.action === '매수' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                          <div className={`px-3 py-1 rounded-full text-sm font-medium self-start ${
+                            trade.action === '매수' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {trade.action}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold">{trade.stock}</div>
+                            <div className="text-sm text-muted-foreground">{trade.quantity}주 @ {trade.price}</div>
+                          </div>
+                        </div>
+                        <div className={`font-semibold text-right sm:text-left ${
+                          trade.impact.startsWith('+') ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {trade.action}
+                          {trade.impact}
                         </div>
-                        <div>
-                          <div className="font-semibold">{trade.stock}</div>
-                          <div className="text-sm text-muted-foreground">{trade.quantity}주 @ {trade.price}</div>
-                        </div>
-                      </div>
-                      <div className={`font-semibold ${
-                        trade.impact.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {trade.impact}
                       </div>
                     </div>
                   ))}
@@ -345,11 +347,11 @@ const Results = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-center gap-4">
-            <Button size="lg" onClick={() => navigate('/strategies')}>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate('/strategies')}>
               다른 전략 보기
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/rebalancing')}>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/rebalancing')}>
               다시 분석하기
             </Button>
           </div>

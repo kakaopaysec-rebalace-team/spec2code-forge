@@ -113,3 +113,83 @@ select {
     padding: 0.5rem 0.25rem;
   }
 }
+
+/* 모바일 차트 최적화 */
+@media (max-width: 640px) {
+  /* Recharts 차트 반응형 */
+  .recharts-wrapper {
+    width: 100% !important;
+    min-width: 280px !important;
+  }
+  
+  /* Pie Chart 라벨 최적화 */
+  .recharts-pie-label-text {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-anchor: middle !important;
+  }
+  
+  /* 범례 최적화 */
+  .recharts-default-legend {
+    font-size: 12px !important;
+  }
+  
+  /* 툴팁 최적화 */
+  .recharts-default-tooltip {
+    font-size: 12px !important;
+    max-width: 200px !important;
+  }
+}
+
+/* 모바일 카드 컨텐츠 최적화 */
+@media (max-width: 640px) {
+  /* 카드 내부 간격 최적화 */
+  .card-content-mobile {
+    padding: 0.75rem !important;
+  }
+  
+  /* 숫자 표시 최적화 */
+  .metric-number {
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+    word-break: break-all !important;
+  }
+  
+  /* 작은 텍스트 가독성 개선 */
+  .metric-label {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+    word-wrap: break-word !important;
+  }
+  
+  /* 플렉스 아이템 줄바꿈 방지 */
+  .mobile-nowrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* 긴 텍스트 줄임표 */
+  .mobile-ellipsis {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* 모바일 그리드 간격 최적화 */
+@media (max-width: 640px) {
+  .mobile-grid-gap {
+    gap: 0.75rem !important;
+  }
+  
+  /* 모바일 패딩 최적화 */
+  .mobile-padding {
+    padding: 0.75rem !important;
+  }
+  
+  /* 모바일 마진 최적화 */
+  .mobile-margin {
+    margin: 0.5rem !important;
+  }
+}

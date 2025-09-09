@@ -72,12 +72,12 @@ const ProfileSetup = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <header className="border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold">리밸런싱 시작하기</h1>
+              <TrendingUp className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-bold">리밸런싱 시작하기</h1>
             </div>
-            <Button variant="ghost" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               돌아가기
             </Button>
           </div>
@@ -95,26 +95,26 @@ const ProfileSetup = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600">
                     ${totalValue.toLocaleString()}
                   </div>
-                  <div className="text-sm text-muted-foreground">총 포트폴리오 가치</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">총 포트폴리오 가치</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-3xl font-bold">{holdings.length}</div>
-                  <div className="text-sm text-muted-foreground">보유 종목</div>
+                  <div className="text-2xl sm:text-3xl font-bold">{holdings.length}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">보유 종목</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-3xl font-bold">
+                  <div className="text-2xl sm:text-3xl font-bold">
                     {holdings.filter(h => h.market_value > h.purchase_price * h.quantity).length}
                   </div>
-                  <div className="text-sm text-muted-foreground">수익 종목</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">수익 종목</div>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {holdings.map((holding) => {
                   const totalCost = holding.purchase_price * holding.quantity;
                   const profitLoss = holding.market_value - totalCost;
@@ -130,24 +130,25 @@ const ProfileSetup = () => {
                         <Badge variant="outline">{holding.weight.toFixed(1)}%</Badge>
                       </div>
                       
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span>보유량:</span>
-                          <span>{holding.quantity.toLocaleString()}</span>
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">보유량:</span>
+                          <span className="font-medium">{holding.quantity.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>현재가:</span>
-                          <span>${holding.current_price.toFixed(2)}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">현재가:</span>
+                          <span className="font-medium">${holding.current_price.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>시장가치:</span>
-                          <span className="font-medium">${holding.market_value.toLocaleString()}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">시장가치:</span>
+                          <span className="font-semibold">${holding.market_value.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>손익:</span>
-                          <span className={profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            ${profitLoss.toFixed(2)} ({profitLossPercent >= 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
-                          </span>
+                        <div className="flex justify-between items-start">
+                          <span className="text-muted-foreground">손익:</span>
+                          <div className={`font-medium text-right ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <div>${profitLoss.toFixed(2)}</div>
+                            <div className="text-xs">({profitLossPercent >= 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)</div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -166,20 +167,20 @@ const ProfileSetup = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 text-sm">
                 <div className="text-center p-3 bg-muted rounded-lg">
-                  <div className="text-muted-foreground">평균 수익률</div>
-                  <div className="font-semibold text-lg text-green-600">
+                  <div className="text-xs sm:text-sm text-muted-foreground">평균 수익률</div>
+                  <div className="font-semibold text-lg sm:text-xl text-green-600">
                     {strategies.length > 0 ? (strategies.reduce((sum, s) => sum + s.expected_return, 0) / strategies.length).toFixed(1) : '0.0'}%
                   </div>
                 </div>
                 <div className="text-center p-3 bg-muted rounded-lg">
-                  <div className="text-muted-foreground">전체 전략 수</div>
-                  <div className="font-semibold text-lg">{strategies.length}개</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">전체 전략 수</div>
+                  <div className="font-semibold text-lg sm:text-xl">{strategies.length}개</div>
                 </div>
                 <div className="text-center p-3 bg-muted rounded-lg">
-                  <div className="text-muted-foreground">최고 수익률</div>
-                  <div className="font-semibold text-lg text-green-600">
+                  <div className="text-xs sm:text-sm text-muted-foreground">최고 수익률</div>
+                  <div className="font-semibold text-lg sm:text-xl text-green-600">
                     {strategies.length > 0 ? Math.max(...strategies.map(s => s.expected_return)).toFixed(1) : '0.0'}%
                   </div>
                 </div>
@@ -227,7 +228,7 @@ const ProfileSetup = () => {
               </div>
               
               <div className="mt-6 text-center space-y-2">
-                <Button variant="outline" onClick={() => navigate('/strategies')}>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/strategies')}>
                   모든 전략 상세 비교
                 </Button>
                 <p className="text-xs text-muted-foreground">
@@ -242,10 +243,10 @@ const ProfileSetup = () => {
             <Button 
               size="lg" 
               onClick={handleAnalyze} 
-              className="px-12 py-3"
+              className="w-full sm:w-auto px-8 sm:px-12 py-3"
               disabled={holdings.length === 0}
             >
-              <Building2 className="mr-2 h-5 w-5" />
+              <Building2 className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
               리밸런싱 전략 생성하기
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
